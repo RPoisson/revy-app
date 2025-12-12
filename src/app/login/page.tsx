@@ -3,41 +3,41 @@
 
 import { useState } from "react";
 
+// For now we hard-code the password on the client for simplicity.
+// If you want to change it, update this string and redeploy.
+const EXPECTED_PASSWORD =
+  process.env.NEXT_PUBLIC_QUIZ_PASSWORD ?? "create";
+
 export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); // ✅ don't let the browser do a normal form POST
+    e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }), // ✅ send { password: "..." }
-      });
-
-      let data: any = {};
-      try {
-        data = await res.json();
-      } catch {
-        setError("Unexpected server response. Please try again.");
+      // Simple client-side check only
+      if (!password) {
+        setError("Password is required");
         setIsSubmitting(false);
         return;
       }
 
-      if (!res.ok || !data?.success) {
-        setError(data?.error ?? "Incorrect password");
+      if (password !== EXPECTED_PASSWORD) {
+        setError("Incorrect password");
         setIsSubmitting(false);
         return;
       }
 
-      // ✅ Success: full page load so cookies / auth state are clean
-      window.location.href = "/quiz";
-      // nothing after this runs
+      // ✅ Mark this tab/session as "authed"
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("revy_quiz_authed", "1");
+        // Full-page nav so everything is clean
+        window.location.href = "/quiz";
+      }
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");
@@ -71,7 +71,7 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="off"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-full border border-black/20 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-black"
@@ -89,6 +89,11 @@ export default function LoginPage() {
           >
             {isSubmitting ? "Checking..." : "Enter"}
           </button>
+
+          <p className="text-[10px] text-black/40 text-center">
+            If you are in private browsing and the login doesn&apos;t stick,
+            close the tab and reopen the link.
+          </p>
         </form>
       </div>
     </main>

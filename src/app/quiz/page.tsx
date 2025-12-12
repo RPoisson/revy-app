@@ -1,5 +1,4 @@
 // src/app/quiz/page.tsx
-// Updated for mobile, Vercel, and safer navigation
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -13,22 +12,37 @@ import {
 type QuizAnswers = Record<string, string[]>;
 
 export default function QuizPage() {
+  // 🔐 Simple client-side auth gate
+  const [checkedAuth, setCheckedAuth] = useState(false);
+
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [completed, setCompleted] = useState(false);
+
+  // Check sessionStorage flag set by /login
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const authed = window.sessionStorage.getItem("revy_quiz_authed");
+    if (!authed) {
+      window.location.href = "/login";
+      return;
+    }
+    setCheckedAuth(true);
+  }, []);
+
+  // Smooth scroll to top on each question change (after auth)
+  useEffect(() => {
+    if (!checkedAuth) return;
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [step, checkedAuth]);
 
   const total = QUESTIONS.length;
   const question = QUESTIONS[step] ?? null;
   const progress = question ? ((step + 1) / total) * 100 : 0;
   const isLast = step === total - 1;
-
-  // Smooth scroll to top on each question change
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }, [step]);
 
   function toggleOption(q: Question, optionId: string) {
     setAnswers((prev) => {
@@ -51,7 +65,6 @@ export default function QuizPage() {
     if (!isLast) {
       setStep((s) => s + 1);
     } else {
-      // Quiz complete
       setCompleted(true);
     }
   }
@@ -63,12 +76,16 @@ export default function QuizPage() {
   const canGoNext = useMemo(() => {
     if (!question) return false;
     const current = answers[question.id] ?? [];
-    // If you want to require an answer per question, change to:
-    // return current.length > 0;
+    // If you want to require an answer, change to: return current.length > 0;
     return true || current.length > 0;
   }, [answers, question]);
 
-  // ✅ Defensive guard: if something goes wrong with step/indexing
+  // While we haven't confirmed auth, render nothing
+  if (!checkedAuth) {
+    return null;
+  }
+
+  // Defensive guard: if something goes wrong with indexing
   if (!completed && !question) {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
@@ -128,9 +145,7 @@ export default function QuizPage() {
             <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-black/50">
               Title
             </h2>
-            <p className="text-lg text-black">
-              {title}
-            </p>
+            <p className="text-lg text-black">{title}</p>
           </section>
 
           {/* Description section */}
@@ -262,7 +277,6 @@ function QuestionOptions({
               )}
             </div>
 
-            {/* Image */}
             {opt.imageUrl && (
               <img
                 src={opt.imageUrl}
@@ -271,7 +285,6 @@ function QuestionOptions({
               />
             )}
 
-            {/* Checkmark pill for multi-select (but not Q1) */}
             {question.allowMultiple && question.id !== "spaces_appeal" && (
               <span className="absolute top-2 right-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/75 text-[10px] text-[#F8F5EE]">
                 ✓
