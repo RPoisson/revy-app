@@ -8,7 +8,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => null);
     const password = body?.password as string | undefined;
 
-    const expected = process.env.LOGIN_PASSWORD; // <- set in .env / Vercel env
+    const expected =
+  process.env.QUIZ_PASSWORD ?? process.env.LOGIN_PASSWORD ?? process.env.SERVER_PASSWORD;
+ // <- set in .env / Vercel env
 
     if (!expected) {
       return NextResponse.json(
