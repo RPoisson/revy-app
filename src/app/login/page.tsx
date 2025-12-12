@@ -6,7 +6,11 @@ import { useState } from "react";
 // For now we hard-code the password on the client for simplicity.
 // If you want to change it, update this string and redeploy.
 const EXPECTED_PASSWORD =
-  process.env.NEXT_PUBLIC_QUIZ_PASSWORD ?? "create";
+  process.env.NEXT_PUBLIC_QUIZ_PASSWORD;
+if (!EXPECTED_PASSWORD) {
+  throw new Error("NEXT_PUBLIC_QUIZ_PASSWORD is not set");
+}
+
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
