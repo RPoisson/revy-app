@@ -1,7 +1,7 @@
 // src/app/quiz/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { QUESTIONS, Question, Option } from "@/questions";
 import { scoreQuiz } from "@/app/scoring";
 import { generateResultText } from "@/app/resultText";
@@ -17,6 +17,11 @@ export default function QuizPage() {
   const total = QUESTIONS.length;
   const progress = ((step + 1) / total) * 100;
   const isLast = step === total - 1;
+
+  // Scroll to top on each step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [step]);
 
   function toggleOption(q: Question, optionId: string) {
     setAnswers((prev) => {
@@ -197,19 +202,28 @@ function QuestionOptions({
                 : "hover:scale-[1.01] hover:shadow-md"
             }`}
           >
-            {opt.imageUrl && (
-              <img
-                src={opt.imageUrl}
-                alt={opt.label}
-                className="w-full aspect-[2/3] object-cover"
-              />
-            )}
-            <div className="p-3">
-              <p className="text-sm font-medium">{opt.label}</p>
-              {opt.subtitle && (
-                <p className="mt-1 text-xs text-black/60">{opt.subtitle}</p>
+            <div className="relative">
+              {opt.imageUrl && (
+                <img
+                  src={opt.imageUrl}
+                  alt={opt.label}
+                  className="w-full aspect-[2/3] object-cover"
+                />
               )}
+
+              {/* Label bar at the TOP of the image */}
+              <div className="absolute top-0 left-0 right-0 bg-black/50 px-3 py-2">
+                <p className="text-xs md:text-sm font-medium text-white">
+                  TOP LABEL {opt.label}
+                </p>
+                {opt.subtitle && (
+                  <p className="mt-0.5 text-[10px] md:text-xs text-white/80">
+                    {opt.subtitle}
+                  </p>
+                )}
+              </div>
             </div>
+
             {question.allowMultiple && (
               <span className="absolute top-2 right-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/75 text-[10px] text-[#F8F5EE]">
                 ✓
