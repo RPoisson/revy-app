@@ -103,17 +103,17 @@ export const QUESTIONS: Question[] = [
       {
         id: "home_01",
         label: "Refined & Elegant",
-        imageUrl: "/quiz/q2/home-01.png",
+        imageUrl: "/quiz/q2/home_01.png",
       },
       {
         id: "home_02",
         label: "Cozy & Lived-in",
-        imageUrl: "/quiz/q2/home-02.png",
+        imageUrl: "/quiz/q2/home_02.png",
       },
       {
         id: "home_03",
         label: "Sun-kissed & Relaxed",
-        imageUrl: "/quiz/q2/home-03.png",
+        imageUrl: "/quiz/q2/home_03.png",
       },
     ],
   },
