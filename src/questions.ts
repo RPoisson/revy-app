@@ -182,17 +182,17 @@ export const QUESTIONS: Question[] = [
     allowMultiple: false,
     options: [
       {
-        id: "material_01",
+        id: "material-01",
         label: "Polished & Modern",
         imageUrl: "/quiz/q5/material-01.png",
       },
       {
-        id: "material_02",
+        id: "material-02",
         label: "Crisp & Natural",
         imageUrl: "/quiz/q5/material-02.png",
       },
       {
-        id: "material_03",
+        id: "material-03",
         label: "Textured & Vintage",
         imageUrl: "/quiz/q5/material-03.png",
       },
@@ -209,17 +209,17 @@ export const QUESTIONS: Question[] = [
     allowMultiple: false,
     options: [
       {
-        id: "feel_01",
+        id: "feel-01",
         label: "Minimal",
         imageUrl: "/quiz/q6/feel-01.png",
       },
       {
-        id: "feel_02",
+        id: "feel-02",
         label: "Curated",
         imageUrl: "/quiz/q6/feel-02.png",
       },
       {
-        id: "feel_03",
+        id: "feel-03",
         label: "Layered",
         imageUrl: "/quiz/q6/feel-03.png",
       },
@@ -263,22 +263,22 @@ export const QUESTIONS: Question[] = [
     allowMultiple: false,
     options: [
       {
-        id: "mood_01",
+        id: "mood-01",
         label: "Soft Neutrals & Warm Whites",
         imageUrl: "/quiz/q8/mood-01.png",
       },
       {
-        id: "mood_02",
+        id: "mood-02",
         label: "Neutral with High Contrast",
         imageUrl: "/quiz/q8/mood-02.png",
       },
       {
-        id: "mood_03",
+        id: "mood-03",
         label: "Deep Jewel Tones",
         imageUrl: "/quiz/q8/mood-03.png",
       },
       {
-        id: "mood_04",
+        id: "mood-04",
         label: "Dramatic & Moody",
         imageUrl: "/quiz/q8/mood-04.png",
       },
