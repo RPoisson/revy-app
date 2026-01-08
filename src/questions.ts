@@ -51,7 +51,7 @@ export const QUESTIONS: Question[] = [
       { id: "craftsman", label: "Craftsman", imageUrl: "/quiz/exterior/Craftsman.jpg" },
       { id: "french_provincial", label: "French Provincial", imageUrl: "/quiz/exterior/FrenchProvincial.jpg" },
       { id: "mediterranean_spanish", label: "Mediterranean / Spanish", imageUrl: "/quiz/exterior/MediterraneanSpanish.jpg" },
-      { id: "midcentury_modern", label: "Mid-Century Modern", imageUrl: "/quiz/exterior/MidcenturyModern.jpg" },
+      { id: "midcentury_modern", label: "Mid-Century Modern", imageUrl: "/quiz/exterior/MidCenturyModern.jpg" },
       { id: "modern_farmhouse", label: "Modern Farmhouse", imageUrl: "/quiz/exterior/ModernFarmhouse.jpg" },
       { id: "ranch", label: "Ranch", imageUrl: "/quiz/exterior/Ranch.jpg" },
       { id: "tudor_english_cottage", label: "Tudor / English Cottage", imageUrl: "/quiz/exterior/Tudor.jpg" },
