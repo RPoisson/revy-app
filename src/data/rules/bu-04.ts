@@ -35,8 +35,8 @@ export const BU_04A: RevyRule = {
 
   badges: [
     {
-      tone: "info",
-      icon: "info",
+      tone: "positive",
+      icon: "check",
       title: "Spend here (durable + low upkeep)",
       text: bullets([
         "Hard-wearing flooring",
@@ -87,8 +87,8 @@ export const BU_04B: RevyRule = {
       ]),
     },
     {
-      tone: "info",
-      icon: "info",
+      tone: "warning",
+      icon: "warning",
       title: "Simplify elsewhere",
       text: bullets([
         "Secondary surfaces",
@@ -116,7 +116,7 @@ export const BU_04C: RevyRule = {
 
   badges: [
     {
-      tone: "check",
+      tone: "positive",
       icon: "check",
       title: "Splurge here",
       text: bullets([
@@ -126,7 +126,7 @@ export const BU_04C: RevyRule = {
       ]),
     },
     {
-      tone: "info",
+      tone: "positive",
       icon: "info",
       title: "Save here",
       text: bullets([
@@ -143,7 +143,7 @@ export const BU_04C: RevyRule = {
 // ──────────────────────────────────────────────────────────────
 const HIGH_END_BADGES = [
   {
-    tone: "check" as const,
+    tone: "positive" as const,
     icon: "check" as const,
     title: "Where to focus",
     text: bullets([
@@ -237,8 +237,8 @@ export const BU_04D4: RevyRule = {
 // ──────────────────────────────────────────────────────────────
 const TIGHT_BUDGET_BADGES = [
   {
-    tone: "check" as const,
-    icon: "check" as const,
+    tone: "warning" as const,
+    icon: "warning" as const,
     title: "Spend here",
     text: bullets([
       "Lighting quality and placement",
@@ -247,8 +247,8 @@ const TIGHT_BUDGET_BADGES = [
     ]),
   },
   {
-    tone: "info" as const,
-    icon: "info" as const,
+    tone: "positive" as const,
+    icon: "check" as const,
     title: "Save here",
     text: bullets([
       "Decorative tile patterns",
@@ -302,7 +302,7 @@ export const BU_04E3: RevyRule = {
 
   badges: [
     {
-      tone: "info",
+      tone: "positive",
       icon: "info",
       title: "Spend here",
       text: bullets([
@@ -312,8 +312,8 @@ export const BU_04E3: RevyRule = {
       ]),
     },
     {
-      tone: "info",
-      icon: "info",
+      tone: "positive",
+      icon: "check",
       title: "Save here",
       text: bullets([
         "Highly taste-specific finishes",

@@ -17,7 +17,7 @@ export const BU_02: RevyRule = {
 
   badges: [
     {
-      tone: "info",
+      tone: "neutral",
       icon: "info",
       title: "This is about aesthetic integrity (not feasibility)",
       text:
@@ -31,6 +31,7 @@ export const BU_02: RevyRule = {
       title: "Key constraints we’ll design within",
       subsections: [
         {
+          title: "What to expect at this tier",
           bullets: [
             "We’ll simplify material coverage and avoid over-promising premium surfaces at this tier.",
             "The goal is not ‘luxury everywhere’ — it’s restraint that still feels designed.",

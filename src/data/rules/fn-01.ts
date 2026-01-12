@@ -29,7 +29,7 @@ export const FN_01A: RevyRule = {
 
   badges: [
     {
-      tone: "check",
+      tone: "positive",
       icon: "check",
       title: "Prioritize",
       text: bullets([
@@ -40,7 +40,7 @@ export const FN_01A: RevyRule = {
       ]),
     },
     {
-      tone: "info",
+      tone: "positive",
       icon: "info",
       title: "Be disciplined",
       text: bullets([
@@ -67,7 +67,7 @@ export const FN_01B: RevyRule = {
 
   badges: [
     {
-      tone: "check",
+      tone: "positive",
       icon: "check",
       title: "Spend here",
       text: bullets([
@@ -89,7 +89,7 @@ export const FN_01B: RevyRule = {
       ]),
     },
     {
-      tone: "info",
+      tone: "positive",
       icon: "info",
       title: "Palette guidance",
       text: bullets([
@@ -115,7 +115,7 @@ export const FN_01C: RevyRule = {
 
   badges: [
     {
-      tone: "check",
+      tone: "positive",
       icon: "check",
       title: "Default palette (broad appeal)",
       text: bullets([
@@ -125,7 +125,7 @@ export const FN_01C: RevyRule = {
       ]),
     },
     {
-      tone: "info",
+      tone: "positive",
       icon: "info",
       title: "Calculated statement moments",
       text: bullets([

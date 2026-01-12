@@ -14,8 +14,12 @@ export type RuleSection = {
   subsections?: Array<{
     title: string;
     bullets: string[];
+ visibilityCondition?: string; 
   }>;
   advisory?: string;
+};
+export type RuleDisclaimer = {
+  patternId: string;
 };
 
 export type RevyRule = {
@@ -32,6 +36,7 @@ export type RevyRule = {
   lightScopeNote?: string;
 
   badges: RuleBadge[];
-  alwaysVisibleConstraints: string[];
-  sections: RuleSection[];
+  alwaysVisibleConstraints?: string[];
+  sections?: RuleSection[];
+ disclaimer?: RuleDisclaimer; // ✅ add this
 };

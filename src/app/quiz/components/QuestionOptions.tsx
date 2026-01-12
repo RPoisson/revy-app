@@ -79,7 +79,7 @@ export default function QuestionOptions({
                 disabled={false}
                 onClick={() => handleClick(opt)}
                 showReason={false}
-                reason={undefined}
+    
                 allowMultiple={question.allowMultiple}
                 questionId={question.id}
               />
@@ -168,7 +168,7 @@ function OptionTile({
   disabled: boolean;
   onClick: () => void;
   showReason: boolean;
-  reason: string;
+  reason?: string;
   allowMultiple: boolean;
   questionId: string;
 }) {

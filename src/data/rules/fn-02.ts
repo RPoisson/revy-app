@@ -26,7 +26,7 @@ export const FN_02: RevyRule = {
 
   badges: [
     {
-      tone: "check",
+      tone: "positive",
       icon: "check",
       title: "Where personality works best",
       text: bullets([
@@ -38,7 +38,7 @@ export const FN_02: RevyRule = {
       ]),
     },
     {
-      tone: "info",
+      tone: "positive",
       icon: "info",
       title: "Where to stay neutral",
       text: bullets([

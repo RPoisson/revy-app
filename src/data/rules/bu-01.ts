@@ -17,7 +17,7 @@ export const BU_01: RevyRule = {
 
   badges: [
     {
-      tone: "info",
+      tone: "neutral",
       icon: "info",
       title: "This is a budget-fit check (not a quote)",
       text:
