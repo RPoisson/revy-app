@@ -1,122 +1,82 @@
 // src/app/login/page.tsx
-"use client";
-
-import { useMemo, useState } from "react";
+'use client';
+//import "../globals.css";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const EXPECTED_PASSWORD = useMemo(
-    () => process.env.NEXT_PUBLIC_QUIZ_PASSWORD ?? "",
-    []
-  );
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
+    setLoading(true);
+    setError('');
 
-    try {
-      if (!EXPECTED_PASSWORD) {
-        setError("Password is not configured on this deployment.");
-        setIsSubmitting(false);
-        return;
-      }
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+      headers: { 'Content-Type': 'application/json' },
+    });
 
-      if (!password) {
-        setError("Password is required");
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (password !== EXPECTED_PASSWORD) {
-        setError("Incorrect password");
-        setIsSubmitting(false);
-        return;
-      }
-
-      window.sessionStorage.setItem("revy_quiz_authed", "1");
-      window.location.href = "/quiz";
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
-      setIsSubmitting(false);
+    if (res.ok) {
+      router.push('/');
+    } else {
+      setError('Incorrect password');
+      setLoading(false);
     }
-  }
-
-  // If env is missing, show a clear message (no hard crash)
-  if (!EXPECTED_PASSWORD) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-sm space-y-3 text-center">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
-          <h1 className="font-[var(--font-playfair)] text-xl">
-            Password not configured
-          </h1>
-          <p className="text-xs text-black/60">
-            Set <span className="font-mono">NEXT_PUBLIC_QUIZ_PASSWORD</span> in
-            Vercel Environment Variables (Production).
-          </p>
-        </div>
-      </main>
-    );
-  }
+  };
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
-          <h1 className="font-[var(--font-playfair)] text-xl">
-            Enter style quiz
-          </h1>
-          <p className="text-xs text-black/60">
-            This preview is password-protected.
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+            Authentication
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Please enter your password to continue
           </p>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="block text-xs font-medium text-black/70"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="off"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-full border border-black/20 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-black"
-            />
+        
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-transparent"
+                placeholder="Enter Password"
+              />
+            </div>
           </div>
 
           {error && (
-            <p className="text-xs text-red-600 text-center">{error}</p>
+            <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-2 rounded">
+              {error}
+            </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting || !password}
-            className="w-full rounded-full bg-black text-[#F8F5EE] text-sm py-2 disabled:opacity-40 hover:bg-black/90 transition"
-          >
-            {isSubmitting ? "Checking..." : "Enter"}
-          </button>
-
-          <p className="text-[10px] text-black/40 text-center">
-            In private browsing, this login is per-tab and may reset if the tab
-            is closed.
-          </p>
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {loading ? 'Verifying...' : 'Access Site'}
+            </button>
+          </div>
         </form>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
-// src/app/layout.tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Playfair_Display, Inter } from "next/font/google";
 
@@ -16,7 +15,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Rêvy Style Quiz",
   description: "Discover your French-California interior StyleDNA.",
+};
+
+// New: Viewport settings must be exported separately now
+export const viewport: Viewport = {
   colorScheme: "light",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -27,7 +31,6 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      style={{ colorScheme: "light" }}
       className={`${inter.variable} ${playfair.variable}`}
     >
       <body>

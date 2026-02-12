@@ -46,37 +46,8 @@ subtitle: "This reflects the total project investment—including construction l
       { id: "not_sure", label: "Not sure yet" },
     ],
   },
-  {
-    id: "spend_philosophy",
-    title: "When you do spend, what matters most?",
-    subtitle: "This shapes where Revy recommends splurging vs saving.",
-    type: "single-image",
-    allowMultiple: false,
-    layout: "stack",
-    required: true,
-    options: [
-      {
-        id: "timeless_infrastructure",
-        label: "Timeless infrastructure",
-        subtitle: "Floors, tile, built-ins, systems",
-      },
-      {
-        id: "statement_moments",
-        label: "Statement moments",
-        subtitle: "Lighting, stone, standout details",
-      },
-      {
-        id: "balanced",
-        label: "Balanced",
-        subtitle: "A little on infrastructure, a little on statement moments",
-      },
-      {
-        id: "roi_first",
-        label: "ROI-first",
-        subtitle: "Durable, resale-friendly, low-regret",
-      },
-    ],
-  },
+  
+   
   {
     id: "finish_level",
     title: "What finish level are you aiming for?",
@@ -100,23 +71,6 @@ subtitle: "This reflects the total project investment—including construction l
       },
     ],
   },
-  {
-    id: "splurge_areas",
-    title: "Where are you most excited to splurge?",
-    subtitle: "Pick up to three (optional).",
-    type: "multi-image",
-    allowMultiple: true,
-    layout: "stack",
-    options: [
-      { id: "tile", label: "Tile" },
-      { id: "floors", label: "Floors" },
-      { id: "stone", label: "Stone / counters" },
-      { id: "lighting", label: "Lighting" },
-      { id: "plumbing", label: "Plumbing fixtures" },
-      { id: "hardware", label: "Hardware" },
-      { id: "appliances", label: "Appliances" },
-      { id: "custom_millwork", label: "Custom millwork/cabinetry" },
-    ],
-  },
+  
   
 ];

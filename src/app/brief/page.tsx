@@ -300,12 +300,24 @@ export default function BriefPage() {
   const scopeLevel = resolveOne(answers, scopeIndex, "scope_level");
   // NOTE: lead_time_sensitivity is commented out; keep safe.
   const leadTime = resolveOne(answers, scopeIndex, "lead_time_sensitivity");
-  const rooms = resolveMany(answers, scopeIndex, "rooms").labels;
+const roomIds = list(answers, "rooms");
+const rooms = (() => {
+  const optMap = scopeIndex.get("rooms");
+  return roomIds
+    .map((id) => {
+      const label = optMap?.get(id)?.label ?? id;
+      const qty = first(answers, `rooms_qty_${id}`);
+      if (!qty) return label;
+      const prettyQty = qty === "7_plus" ? "7+" : qty;
+      return `${label} (${prettyQty})`;
+    })
+    .filter(Boolean);
+})();
 
   // Budget labels (for snapshot UI)
   const investmentRange = resolveOne(answers, budgetIndex, "investment_range").label;
   const rangeFlex = resolveOne(answers, budgetIndex, "range_flexibility");
-  const spendPhilosophy = resolveOne(answers, budgetIndex, "spend_philosophy");
+
   const finishLevel = resolveOne(answers, budgetIndex, "finish_level");
   const splurgeAreas = resolveMany(answers, budgetIndex, "splurge_areas").labels;
 
@@ -343,7 +355,6 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
 
       // Budget rules
       investment_range: first(answers, "investment_range"),
-      spend_philosophy: first(answers, "spend_philosophy"),
       finish_level: first(answers, "finish_level"),
       remodel_complexity_score: complexity,
       budget_fit: budgetFit ?? "unknown",
@@ -468,17 +479,8 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
               </div>
             </div>
 
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-black/50">
-                Spend philosophy
-              </div>
-              <div className="mt-1 text-black/80">
-                {dashIfEmpty(spendPhilosophy.label)}
-                {spendPhilosophy.subtitle ? (
-                  <span className="text-black/60"> — {spendPhilosophy.subtitle}</span>
-                ) : null}
-              </div>
-            </div>
+            
+         
 
             <div>
               <div className="text-[11px] uppercase tracking-[0.2em] text-black/50">
@@ -492,14 +494,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
               </div>
             </div>
 
-            <div className="md:col-span-2">
-              <div className="text-[11px] uppercase tracking-[0.2em] text-black/50">
-                Splurge areas
-              </div>
-              <div className="mt-1 text-black/80">
-                {splurgeAreas.length ? splurgeAreas.join(" · ") : "—"}
-              </div>
-            </div>
+            
           </div>
         </section>
 

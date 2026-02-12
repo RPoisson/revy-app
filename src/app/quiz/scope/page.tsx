@@ -1,4 +1,3 @@
-// src/app/quiz/scope/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -12,6 +11,20 @@ import {
   saveAnswers,
   type QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
+
+function qtyKey(optionId: string) {
+  return `rooms_qty_${optionId}`;
+}
+
+const COUNTABLE_ROOM_IDS = new Set<string>([
+  "guest_bath",
+  "powder",
+  "secondary_bath",
+  "kids_bath",
+  "nursery_bedroom",
+  "child_bedroom",
+  "teen_bedroom",
+]);
 
 export default function ScopePage() {
   const router = useRouter();
@@ -36,19 +49,41 @@ export default function ScopePage() {
   const canGoNext = useMemo(() => {
     if (!question) return false;
     const current = answers[question.id] ?? [];
-    return question.required ? current.length > 0 : true;
+    const baseOk = question.required ? current.length > 0 : true;
+
+    // ✅ Rooms step: require counts for selected countable room types
+    if (question.id === "rooms") {
+      const missingQty = current.some((optId) => {
+        if (!COUNTABLE_ROOM_IDS.has(optId)) return false;
+        const v = answers[qtyKey(optId)] ?? [];
+        return v.length === 0;
+      });
+      return baseOk && !missingQty;
+    }
+
+    return baseOk;
   }, [answers, question]);
 
   function toggleOption(q: Question, optionId: string) {
     setAnswers((prev) => {
       const current = prev[q.id] ?? [];
+
       if (q.allowMultiple) {
         const exists = current.includes(optionId);
         const nextSelected = exists
           ? current.filter((id) => id !== optionId)
           : [...current, optionId];
+
+        // ✅ If unselecting a countable room, also clear its qty answer
+        if (q.id === "rooms" && exists && COUNTABLE_ROOM_IDS.has(optionId)) {
+          const key = qtyKey(optionId);
+          const { [key]: _, ...rest } = prev as any;
+          return { ...rest, [q.id]: nextSelected } as QuizAnswers;
+        }
+
         return { ...prev, [q.id]: nextSelected };
       }
+
       return { ...prev, [q.id]: [optionId] };
     });
   }
@@ -100,7 +135,7 @@ export default function ScopePage() {
           <p className="text-xs md:text-sm text-black/70 leading-relaxed">
             We&apos;ll start with who the home is for, timeline, and the rooms
             you&apos;re touching so recommendations later are grounded and
-            realistic. 
+            realistic.
           </p>
         </section>
 
@@ -139,6 +174,7 @@ export default function ScopePage() {
             selected={answers[question.id] ?? []}
             onSelect={toggleOption}
             answers={answers}
+            onAnswersChange={setAnswers} // ✅ now supported by component
           />
         </section>
 
