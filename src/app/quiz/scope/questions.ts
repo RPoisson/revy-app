@@ -111,7 +111,7 @@ export const SCOPE_QUESTIONS: Question[] = [
 
     // ✅ New: inline counts for selected options (rendered by QuestionOptions)
     // NOTE: Question is still multi-select; counts are stored as separate keys.
-    supportsCounts: true as any,
+    supportsCounts: true,
     countableOptionIds: [
       "guest_bath",
       "powder",
