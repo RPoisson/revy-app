@@ -1,6 +1,6 @@
-// src/app/login/page.tsx
 'use client';
-//import "../globals.css";
+
+import "../globals.css";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -15,36 +15,48 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      body: JSON.stringify({ password }),
-      headers: { 'Content-Type': 'application/json' },
-    });
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-    if (res.ok) {
-      router.push('/');
-    } else {
-      setError('Incorrect password');
+      if (res.ok) {
+        router.push('/');
+      } else {
+        setError('Incorrect password');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Authentication
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Please enter your password to continue
+    <main className="min-h-screen bg-[#F8F5EE] text-neutral-900 flex items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-8">
+        
+        {/* Branding & Header */}
+        <div className="text-center space-y-3">
+          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
+            Studio Rêvy™
+          </p>
+          
+          <p className="text-sm text-black/70 leading-relaxed">
+            Please enter your project password to access the design portal.
           </p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="password" className="sr-only">
+
+        {/* Login Card */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label 
+                htmlFor="password" 
+                className="block text-xs font-semibold uppercase tracking-wider text-black/60 ml-1"
+              >
                 Password
               </label>
               <input
@@ -54,29 +66,35 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-transparent"
-                placeholder="Enter Password"
+                autoFocus
+                className="w-full px-5 py-3 rounded-xl border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-black focus:border-black transition-all sm:text-sm"
+                placeholder="••••••••"
               />
             </div>
-          </div>
 
-          {error && (
-            <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-2 rounded">
-              {error}
-            </div>
-          )}
+            {error && (
+              <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-xs text-center animate-in fade-in zoom-in duration-200">
+                {error}
+              </div>
+            )}
 
-          <div>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="w-full flex justify-center py-3 px-4 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide hover:bg-black/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Verifying...' : 'Access Site'}
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
+
+        {/* Footer Reassurance */}
+        <div className="text-center">
+          <p className="text-xs text-black/40">
+            Secure access for Studio Rêvy clients.
+          </p>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
