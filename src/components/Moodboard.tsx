@@ -1,8 +1,8 @@
 // src/components/moodboard/Moodboard.tsx
 import React from "react";
 import Image from "next/image";
-import type { MoodboardLayoutSpec, SlotLayout } from "@/lib/moodboard/layoutSpec.v1";
-import type { SlotId } from "@/lib/moodboard/layoutSpec.v1";
+import type { MoodboardLayoutSpec, SlotLayout } from "@/lib/moodboard/layoutSpec";
+import type { SlotId } from "@/lib/moodboard/layoutSpec";
 
 export type SlotContent =
   | { kind: "image"; src: string }

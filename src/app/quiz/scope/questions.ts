@@ -100,7 +100,7 @@ export const SCOPE_QUESTIONS: Question[] = [
     ],
   },
 
-  {
+ {
     id: "rooms",
     title: "Which spaces are you building or updating?",
     subtitle: "Choose all that apply.",
@@ -109,8 +109,7 @@ export const SCOPE_QUESTIONS: Question[] = [
     layout: "stack",
     required: true,
 
-    // ✅ New: inline counts for selected options (rendered by QuestionOptions)
-    // NOTE: Question is still multi-select; counts are stored as separate keys.
+    // ✅ Cleaned up: No more 'as any' needed!
     supportsCounts: true,
     countableOptionIds: [
       "guest_bath",
@@ -120,7 +119,7 @@ export const SCOPE_QUESTIONS: Question[] = [
       "nursery_bedroom",
       "child_bedroom",
       "teen_bedroom",
-    ] as any,
+    ],
 
     options: [
       { id: "whole_home", label: "Whole home" },

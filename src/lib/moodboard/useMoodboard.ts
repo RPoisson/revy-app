@@ -1,9 +1,9 @@
 // src/lib/moodboard/useMoodboard.ts
 import { useMemo } from "react";
-import { LAYOUT_V1, withComputedRects } from "@/lib/moodboard/layoutSpec.v1";
-import type { SlotId } from "@/lib/moodboard/materialRules.v1";
-import type { PaintMood } from "@/lib/moodboard/materialRules.v1";
-import { MATERIAL_SPECS_V1, selectForSlots } from "@/lib/moodboard/materialRules.v1";
+import { LAYOUT_V1, withComputedRects } from "@/lib/moodboard/layoutSpec";
+import type { SlotId } from "@/lib/moodboard/materialRules";
+import type { PaintMood } from "@/lib/moodboard/materialRules";
+import { MATERIAL_SPECS_V1, selectForSlots } from "@/lib/moodboard/materialRules";
 
 export type MoodboardContext = {
   archetype: "Parisian" | "Provincial" | "Mediterranean";

@@ -62,10 +62,10 @@ export type MoodboardLayoutSpec = {
  tileBand: {
   // Sits under the hero cluster + stones + textiles + accents
   // and stops before the paint strip (paintStrip starts at x: 0.87)
-  rect: { x: 0.06, y: 0.58, w: 0.78, h: 0.18 },
-  count: 4,
-  gap: 0.03,
-  centerJustified: true,
+  rect: { x: number; y: number; w: number; h: number }; 
+    count: number;
+    gap: number;
+    centerJustified: boolean;
 },
 
 
