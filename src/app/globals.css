@@ -29,6 +29,6 @@ body {
 }
 
 /* Optional: Clean up forms (useful for your Login page) */
-input, button {
+input{
   border-radius: 9999px; /* Matches your rounded-full style */
 }

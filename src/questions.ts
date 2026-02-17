@@ -127,6 +127,7 @@ export const QUESTIONS: Question[] = [
     subtitle: "Select as many as you like.",
     type: "multi-image",
     allowMultiple: true,
+required: true,
     layout: "grid",
     options: Array.from({ length: 27 }).map((_, i) => {
       const index = i + 1;
@@ -144,6 +145,7 @@ export const QUESTIONS: Question[] = [
     title: "Which of these do you prefer?",
     type: "single-image",
     allowMultiple: false,
+required: true,
     options: [
       { id: "home_01", label: "Refined & Elegant", imageUrl: "/quiz/q2/home_01.jpg", showIf: (answers) => isArchetypeSupported(answers, "parisian") },
       { id: "home_02", label: "Cozy & Lived-in", imageUrl: "/quiz/q2/home_02.jpg", showIf: (answers) => isArchetypeSupported(answers, "provincial") },
@@ -155,6 +157,7 @@ export const QUESTIONS: Question[] = [
     title: "What kind of light and color balance do you prefer?",
     type: "single-image",
     allowMultiple: false,
+required: true,
     options: [
       { id: "light_01", label: "Bright & Airy", imageUrl: "/quiz/q3/light-01.jpg" },
       { id: "light_02", label: "Balanced with Contrast", imageUrl: "/quiz/q3/light-02.jpg" },
@@ -166,6 +169,7 @@ export const QUESTIONS: Question[] = [
     title: "What’s your ideal color mood?",
     type: "single-image",
     allowMultiple: false,
+required: true,
     options: [
       {
         id: "mood-01",
