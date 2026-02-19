@@ -20,9 +20,9 @@ export interface StyleWeights {
  * - spaces_appeal        → space_01 ... space_27
  * - space_home           → home_01, home_02, home_03
  * - light_color          → light_01, light_02, light_03
- * - material_palette     → material-01, material-02, material-03
- * - space_feel           → feel-01, feel-02, feel-03
- * - color_mood           → mood-01, mood-02, mood-03, mood-04
+ * - material_palette     → material_01, material_02, material_03
+ * - space_feel           → feel_01, feel_02, feel_03
+ * - color_mood           → mood_01, mood_02, mood_03, mood_04, mood_05
  */
 
 export const STYLE_WEIGHTS: Record<string, StyleWeights> = {
@@ -68,18 +68,19 @@ export const STYLE_WEIGHTS: Record<string, StyleWeights> = {
   light_03: { brightMoody: 1 },
 
   // --- material_palette (material-01 ... material-03) ---
-  "material-01": { modernRustic: 0.1 },
-  "material-02": { modernRustic: 0.5 },
-  "material-03": { modernRustic: 0.9 },
+  "material_01": { modernRustic: 0.1 },
+  "material_02": { modernRustic: 0.5 },
+  "material_03": { modernRustic: 0.9 },
 
   // --- space_feel (feel-01 ... feel-03) ---
-  "feel-01": { minimalLayered: 0.1 },
-  "feel-02": { minimalLayered: 0.5 },
-  "feel-03": { minimalLayered: 0.9 },
+  "feel_01": { minimalLayered: 0.1 },
+  "feel_02": { minimalLayered: 0.5 },
+  "feel_03": { minimalLayered: 0.9 },
 
   // --- color_mood (mood-01 ... mood-04) ---
-  "mood-01": { brightMoody: 0.1 },
-  "mood-02": { brightMoody: 0.5 },
-  "mood-03": { brightMoody: 0.7 },
-  "mood-04": { brightMoody: 1 },
+  "mood_01": { brightMoody: 0.1 },
+  "mood_02": { brightMoody: 0.5 },
+  "mood_03": { brightMoody: 0.7 },
+  "mood_04": { brightMoody: 1 },
+"mood_05": { brightMoody: 0.2 }
 };

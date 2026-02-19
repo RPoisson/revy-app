@@ -53,26 +53,26 @@ function exteriorFamilyFromAnswers(answers: Answers): "sunwashed" | "modern" | "
   return "classic";
 }
 
-type PaletteId = "mood-01" | "mood-02" | "mood-03" | "mood-04" | "mood-05";
+type PaletteId = "mood_01" | "mood_02" | "mood_03" | "mood_04" | "mood_05";
 
 function supportedPalettesByArchetype(archetype: Archetype): Set<PaletteId> {
   switch (archetype) {
     case "parisian":
-      return new Set<PaletteId>(["mood-01", "mood-02", "mood-03", "mood-04"]);
+      return new Set<PaletteId>(["mood_01", "mood_02", "mood_03", "mood_04"]);
     case "provincial":
-      return new Set<PaletteId>(["mood-01", "mood-02", "mood-04"]);
+      return new Set<PaletteId>(["mood_01", "mood_02", "mood_04"]);
     case "mediterranean":
-      return new Set<PaletteId>(["mood-01", "mood-03", "mood-05"]);
+      return new Set<PaletteId>(["mood_01", "mood_03", "mood_05"]);
     default:
-      return new Set<PaletteId>(["mood-01", "mood-02", "mood-03", "mood-04", "mood-05"]);
+      return new Set<PaletteId>(["mood_01", "mood_02", "mood_03", "mood_04", "mood_05"]);
   }
 }
 
 function isPaletteDisallowedByExterior(paletteId: PaletteId, answers: Answers): boolean {
   const fam = exteriorFamilyFromAnswers(answers);
   if (fam === "sunwashed") {
-    if (paletteId === "mood-02") return true;
-    if (paletteId === "mood-04") return true;
+    if (paletteId === "mood_02") return true;
+    if (paletteId === "mood_04") return true;
   }
   return false;
 }
@@ -88,8 +88,8 @@ function isPaletteSelectable(paletteId: PaletteId, answers: Answers): boolean {
 function notBestFitReason(paletteId: PaletteId, answers: Answers): string {
   const fam = exteriorFamilyFromAnswers(answers);
   if (fam === "sunwashed") {
-    if (paletteId === "mood-02") return "High contrast can read too sharp against a sun-washed exterior.";
-    if (paletteId === "mood-04") return "A very moody palette can feel heavy in a sun-washed architectural context.";
+    if (paletteId === "mood_02") return "High contrast can read too sharp against a sun-washed exterior.";
+    if (paletteId === "mood_04") return "A very moody palette can feel heavy in a sun-washed architectural context.";
   }
   return "Not the strongest fit for the home’s exterior character and the overall direction of this project.";
 }
@@ -164,6 +164,33 @@ required: true,
       { id: "light_03", label: "Moody & Dramatic", imageUrl: "/quiz/q3/light-03.jpg" },
     ],
   },
+
+{
+    id: "material_palette",
+    title: "Which material palette resonates with you?",
+    type: "single-image",
+    allowMultiple: false,
+    required: true,
+    options: [
+      { id: "material_01", label: "Smooth & Polished", imageUrl: "/quiz/q4/material-01.jpg" },
+      { id: "material_02", label: "Mixed Textures", imageUrl: "/quiz/q4/material-02.jpg" },
+      { id: "material_03", label: "Raw & Organic", imageUrl: "/quiz/q4/material-03.jpg" },
+    ],
+  },
+  {
+    id: "space_feel",
+    title: "How should the space feel?",
+    type: "single-image",
+    allowMultiple: false,
+    required: true,
+    options: [
+      { id: "feel_01", label: "Clean & Streamlined", imageUrl: "/quiz/q5/feel-01.jpg" },
+      { id: "feel_02", label: "Balanced & Comfortable", imageUrl: "/quiz/q5/feel-02.jpg" },
+      { id: "feel_03", label: "Layered & Collected", imageUrl: "/quiz/q5/feel-03.jpg" },
+    ],
+  },
+
+
   {
     id: "color_mood",
     title: "What’s your ideal color mood?",
@@ -172,39 +199,39 @@ required: true,
 required: true,
     options: [
       {
-        id: "mood-01",
+        id: "mood_01",
         label: "Soft Neutrals & Warm Whites",
         imageUrl: "/quiz/q8/mood-01.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood-01", answers),
-        disabledReason: (answers) => notBestFitReason("mood-01", answers),
+        disabledIf: (answers) => !isPaletteSelectable("mood_01", answers),
+        disabledReason: (answers) => notBestFitReason("mood_01", answers),
       },
       {
-        id: "mood-02",
+        id: "mood_02",
         label: "Neutral with High Contrast",
         imageUrl: "/quiz/q8/mood-02.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood-02", answers),
-        disabledReason: (answers) => notBestFitReason("mood-02", answers),
+        disabledIf: (answers) => !isPaletteSelectable("mood_02", answers),
+        disabledReason: (answers) => notBestFitReason("mood_02", answers),
       },
       {
-        id: "mood-03",
+        id: "mood_03",
         label: "Deep Jewel Tones",
         imageUrl: "/quiz/q8/mood-03.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood-03", answers),
-        disabledReason: (answers) => notBestFitReason("mood-03", answers),
+        disabledIf: (answers) => !isPaletteSelectable("mood_03", answers),
+        disabledReason: (answers) => notBestFitReason("mood_03", answers),
       },
       {
-        id: "mood-04",
+        id: "mood_04",
         label: "Dramatic & Moody",
         imageUrl: "/quiz/q8/mood-04.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood-04", answers),
-        disabledReason: (answers) => notBestFitReason("mood-04", answers),
+        disabledIf: (answers) => !isPaletteSelectable("mood_04", answers),
+        disabledReason: (answers) => notBestFitReason("mood_04", answers),
       },
       {
-        id: "mood-05",
+        id: "mood_05",
         label: "Airy & Bright Naturals",
         imageUrl: "/quiz/q8/mood-05.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood-05", answers),
-        disabledReason: (answers) => notBestFitReason("mood-05", answers),
+        disabledIf: (answers) => !isPaletteSelectable("mood_05", answers),
+        disabledReason: (answers) => notBestFitReason("mood_05", answers),
       },
     ],
   },

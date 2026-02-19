@@ -1,3 +1,5 @@
+//revy-quiz/src/app/spaceTags.ts
+
 export type ArchetypeId = "parisian" | "provincial" | "mediterranean";
 
 export type SpaceTag = {

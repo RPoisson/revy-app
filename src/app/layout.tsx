@@ -1,3 +1,5 @@
+//revy-quiz/src/app/layout.tsx
+
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Playfair_Display, Inter } from "next/font/google";
