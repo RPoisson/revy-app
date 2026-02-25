@@ -64,11 +64,7 @@ subtitle: "This reflects the total project investment—including construction l
       },
       { id: "mid", label: "Mid-range", subtitle: "Nice upgrades, mindful choices" },
       { id: "high", label: "High-end", subtitle: "Premium fixtures + statement finishes" },
-      {
-        id: "very_high",
-        label: "Very high-end",
-        subtitle: "Custom + heirloom level",
-      },
+      
     ],
   },
   
