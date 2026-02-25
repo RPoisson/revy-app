@@ -84,21 +84,21 @@ export const SCOPE_QUESTIONS: Question[] = [
     ],
   },
 
-  {
-    id: "permit_required",
-    title: "Do you plan to pull permits?",
-    subtitle: "This helps us provide guidance on potential constraints.",
-    type: "single-image",
-    allowMultiple: false,
-    layout: "stack",
-    required: true,
-    options: [
-      { id: "no_permit", label: "No" },
-      { id: "yes", label: "Yes" },
-      { id: "yes_permit_received", label: "Yes (already in progress/received)" },
-      { id: "permit_unsure", label: "Not sure yet" },
-    ],
-  },
+ // {
+  //   id: "permit_required",
+   //  title: "Do you plan to pull permits?",
+   //  subtitle: "This helps us provide guidance on potential constraints.",
+   //  type: "single-image",
+   //  allowMultiple: false,
+   //  layout: "stack",
+   //  required: true,
+   //  options: [
+    //   { id: "no_permit", label: "No" },
+    //   { id: "yes", label: "Yes" },
+    //   { id: "yes_permit_received", label: "Yes (already in progress/received)" },
+    //   { id: "permit_unsure", label: "Not sure yet" },
+   //  ],
+ //  },
 
  {
     id: "rooms",
