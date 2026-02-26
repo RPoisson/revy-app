@@ -107,6 +107,35 @@ export default function QuestionOptions({
       ? "grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3"
       : "flex flex-col gap-3 md:gap-4";
 
+  // Hooks must run unconditionally (before any conditional return)
+  const showInlineQty = question.id === "rooms" && !!onAnswersChange;
+  const getQty = (optionId: string) => {
+    const v = answers[qtyKey(optionId)]?.[0];
+    return typeof v === "string" ? v : "";
+  };
+  const setQty = (optionId: string, value: string) => {
+    if (!onAnswersChange) return;
+    onAnswersChange((prev) => {
+      const key = qtyKey(optionId);
+      if (!value) {
+        const { [key]: _, ...rest } = prev as any;
+        return rest as QuizAnswers;
+      }
+      return { ...prev, [key]: [value] };
+    });
+  };
+  const [openTooltipOptionId, setOpenTooltipOptionId] = useState<string | null>(null);
+  const tooltipContainerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!openTooltipOptionId) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipContainerRef.current?.contains(e.target as Node)) return;
+      setOpenTooltipOptionId(null);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openTooltipOptionId]);
+
   const QUESTIONS_WITH_EXTERIOR_FIT = ["spaces_appeal", "space_home", "color_mood"] as const;
   const useExteriorFitLayout = QUESTIONS_WITH_EXTERIOR_FIT.includes(question.id as (typeof QUESTIONS_WITH_EXTERIOR_FIT)[number]);
 
@@ -120,7 +149,7 @@ export default function QuestionOptions({
     );
 
     return (
-      <div className="space-y-8">
+      <div ref={tooltipContainerRef} className="space-y-8">
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-neutral-900">
             Choices you can choose from
@@ -142,10 +171,13 @@ export default function QuestionOptions({
                 reason=""
                 allowMultiple={question.allowMultiple}
                 questionId={question.id}
-                // ✅ counts not used here
                 showQty={false}
                 qtyValue=""
                 onQtyChange={() => {}}
+                tooltipOpen={openTooltipOptionId === opt.id}
+                onTooltipToggle={() =>
+                  setOpenTooltipOptionId((prev) => (prev === opt.id ? null : opt.id))
+                }
               />
             ))}
           </div>
@@ -180,6 +212,10 @@ export default function QuestionOptions({
                   showQty={false}
                   qtyValue=""
                   onQtyChange={() => {}}
+                  tooltipOpen={openTooltipOptionId === opt.id}
+                  onTooltipToggle={() =>
+                    setOpenTooltipOptionId((prev) => (prev === opt.id ? null : opt.id))
+                  }
                 />
               ))}
             </div>
@@ -189,42 +225,8 @@ export default function QuestionOptions({
     );
   }
 
-  // Helpers for inline qty dropdowns (rooms only)
-  const showInlineQty = question.id === "rooms" && !!onAnswersChange;
-
-  const getQty = (optionId: string) => {
-    const v = answers[qtyKey(optionId)]?.[0];
-    return typeof v === "string" ? v : "";
-  };
-
-  const setQty = (optionId: string, value: string) => {
-    if (!onAnswersChange) return;
-    onAnswersChange((prev) => {
-      const key = qtyKey(optionId);
-      if (!value) {
-        const { [key]: _, ...rest } = prev as any;
-        return rest as QuizAnswers;
-      }
-      return { ...prev, [key]: [value] };
-    });
-  };
-
-  // Tooltip open state for mobile (tap to show); one at a time
-  const [openTooltipOptionId, setOpenTooltipOptionId] = useState<string | null>(null);
-  const tooltipContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!openTooltipOptionId) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (tooltipContainerRef.current?.contains(e.target as Node)) return;
-      setOpenTooltipOptionId(null);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [openTooltipOptionId]);
-
   // ──────────────────────────────────────────────────────────────
-  // Default rendering for all other questions (including color_mood)
+  // Default rendering for all other questions
   // ──────────────────────────────────────────────────────────────
   const optionsToRender =
     visibleOptions.length > 0 ? visibleOptions : (question?.options ?? []);
