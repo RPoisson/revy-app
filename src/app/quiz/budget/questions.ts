@@ -61,10 +61,23 @@ subtitle: "This reflects the total project investment—including construction l
         id: "builder_plus",
         label: "Builder-plus",
         subtitle: "Clean, elevated basics",
+        tooltip:
+          "Builder-Plus (Value): Utilizes high-quality, off-the-shelf essentials like ceramic tile and standard paint while avoiding exotic stones or plaster. In spaces like the kitchen, this look is achieved through pre-fabricated cabinetry and functional, value-priced hardware.",
       },
-      { id: "mid", label: "Mid-range", subtitle: "Nice upgrades, mindful choices" },
-      { id: "high", label: "High-end", subtitle: "Premium fixtures + statement finishes" },
-      
+      {
+        id: "mid",
+        label: "Mid-range",
+        subtitle: "Nice upgrades, mindful choices",
+        tooltip:
+          "Mid-Range (Elevated): Elevates the home with premium materials such as quartz, honed limestone, and polished nickel or unlacquered brass fixtures. In a laundry or dining room, this tier incorporates designer-grade lighting and textured surfaces to balance luxury with long-term durability.",
+      },
+      {
+        id: "high",
+        label: "High-end",
+        subtitle: "Premium fixtures + statement finishes",
+        tooltip:
+          "High-End (Luxury): Prioritizes bespoke craftsmanship with custom cabinetry, full marble slabs, and hand-applied plaster walls. Living and kitchen areas feature high-fidelity architectural details such as intricate herringbone patterns and signature stone layouts.",
+      },
     ],
   },
   

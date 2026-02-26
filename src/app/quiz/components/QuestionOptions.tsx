@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Question, Option } from "@/questions";
 import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
@@ -175,11 +175,25 @@ export default function QuestionOptions({
     });
   };
 
+  // Tooltip open state for mobile (tap to show); one at a time
+  const [openTooltipOptionId, setOpenTooltipOptionId] = useState<string | null>(null);
+  const tooltipContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openTooltipOptionId) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipContainerRef.current?.contains(e.target as Node)) return;
+      setOpenTooltipOptionId(null);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openTooltipOptionId]);
+
   // ──────────────────────────────────────────────────────────────
   // Default rendering for all other questions
   // ──────────────────────────────────────────────────────────────
   return (
-    <div className={baseLayoutClasses}>
+    <div ref={tooltipContainerRef} className={baseLayoutClasses}>
       {visibleOptions.map((opt: Option) => {
         const isActive = selected.includes(opt.id);
         const disabled = isDisabled(opt);
@@ -201,10 +215,13 @@ export default function QuestionOptions({
             }
             allowMultiple={question.allowMultiple}
             questionId={question.id}
-            // ✅ inline qty dropdown support
             showQty={needsQty}
             qtyValue={needsQty ? getQty(opt.id) : ""}
             onQtyChange={(v) => setQty(opt.id, v)}
+            tooltipOpen={openTooltipOptionId === opt.id}
+            onTooltipToggle={() =>
+              setOpenTooltipOptionId((prev) => (prev === opt.id ? null : opt.id))
+            }
           />
         );
       })}
@@ -225,6 +242,8 @@ function OptionTile({
   showQty,
   qtyValue,
   onQtyChange,
+  tooltipOpen = false,
+  onTooltipToggle,
 }: {
   opt: Option;
   isExterior: boolean;
@@ -235,30 +254,33 @@ function OptionTile({
   reason?: string;
   allowMultiple: boolean;
   questionId: string;
-
-  // ✅ inline qty dropdown
   showQty: boolean;
   qtyValue: string;
   onQtyChange: (v: string) => void;
+  tooltipOpen?: boolean;
+  onTooltipToggle?: () => void;
 }) {
+  const [hoverTooltip, setHoverTooltip] = useState(false);
+  const showTooltip = !!opt.tooltip && (hoverTooltip || tooltipOpen);
   // Aspect ratios:
   // - Exterior images are 1536x1024 => 3:2
   // - All other image questions: consistent portrait tiles (2:3)
   const aspectClass = isExterior ? "aspect-[3/2]" : opt.imageUrl ? "aspect-[2/3]" : "";
 
   return (
-    <button
-      type="button"
-      key={opt.id}
-      aria-disabled={disabled}
-      onClick={onClick}
-      className={[
-        "relative overflow-hidden rounded-xl bg-white shadow-sm text-left transition",
-        isActive ? "ring-2 ring-black" : "hover:shadow-md",
-        disabled ? "opacity-60 cursor-not-allowed hover:shadow-sm" : "",
-      ].join(" ")}
-    >
-      {opt.imageUrl && (
+    <div className="relative">
+      <button
+        type="button"
+        key={opt.id}
+        aria-disabled={disabled}
+        onClick={onClick}
+        className={[
+          "relative overflow-hidden rounded-xl bg-white shadow-sm text-left transition w-full",
+          isActive ? "ring-2 ring-black" : "hover:shadow-md",
+          disabled ? "opacity-60 cursor-not-allowed hover:shadow-sm" : "",
+        ].join(" ")}
+      >
+        {opt.imageUrl && (
         <div className={`relative w-full ${aspectClass}`}>
           <Image
             src={opt.imageUrl}
@@ -277,11 +299,28 @@ function OptionTile({
       )}
 
       <div className={opt.imageUrl ? "p-2" : "p-3"}>
-        {/* Label row + inline qty dropdown */}
+        {/* Label row + inline qty dropdown + optional tooltip icon */}
         <div className="flex items-start justify-between gap-2">
           <p className="text-xs md:text-sm font-[var(--font-playfair)] text-black">
             {opt.label}
           </p>
+
+          <div className="flex items-center gap-1 shrink-0">
+            {opt.tooltip && (
+              <button
+                type="button"
+                aria-label={`More info about ${opt.label}`}
+                className="flex h-5 w-5 items-center justify-center rounded-full border border-black/20 bg-black/5 text-black/60 hover:bg-black/10 hover:text-black/80 focus:outline-none focus:ring-2 focus:ring-black/20"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTooltipToggle?.();
+                }}
+                onMouseEnter={() => setHoverTooltip(true)}
+                onMouseLeave={() => setHoverTooltip(false)}
+              >
+                <span className="text-[10px] font-semibold">i</span>
+              </button>
+            )}
 
           {showQty ? (
             <select
@@ -303,6 +342,7 @@ function OptionTile({
               ))}
             </select>
           ) : null}
+          </div>
         </div>
 
         {opt.subtitle && (
@@ -325,7 +365,20 @@ function OptionTile({
         ) : null}
       </div>
 
-      {/* ✅ Removed: multi-select checkmark badge entirely (you said no checkmark) */}
-    </button>
+        {/* ✅ Removed: multi-select checkmark badge entirely (you said no checkmark) */}
+      </button>
+
+      {/* Tooltip: hover (desktop) or when toggled open (mobile) */}
+      {opt.tooltip && showTooltip && (
+        <div
+          className="absolute left-0 right-0 top-full z-10 mt-1 rounded-lg border border-black/10 bg-white p-3 shadow-lg text-left"
+          role="tooltip"
+          onMouseEnter={() => setHoverTooltip(true)}
+          onMouseLeave={() => setHoverTooltip(false)}
+        >
+          <p className="text-xs leading-relaxed text-black/85">{opt.tooltip}</p>
+        </div>
+      )}
+    </div>
   );
 }

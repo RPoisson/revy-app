@@ -10,6 +10,8 @@ export interface Option {
   id: string;
   label: string;
   subtitle?: string;
+  /** Optional tooltip shown on hover (desktop) or tap (mobile) */
+  tooltip?: string;
   imageUrl?: string;
   showIf?: (answers: Answers) => boolean;
   disabledIf?: (answers: Answers) => boolean;
