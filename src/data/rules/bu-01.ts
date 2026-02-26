@@ -67,23 +67,24 @@ export const BU_01: RevyRule = {
 
     {
       id: "budget-transparency",
-      title: "Budget transparency (to build trust)",
+      title: "Budget transparency",
       subsections: [
         {
-          title: "Why you’re seeing this guardrail",
+          title: "Why you’re seeing this",
           bullets: [
             "This is triggered when your estimated finish needs exceed your budget comfort zone.",
             "We use typical installed finish ranges by room to detect misalignment before decisions get locked.",
           ],
         },
-        {
-          title: "Comparable finish scope range (shown only when risk is high)",
-          bullets: [
-            "Comparable finish scopes often land around: {{bm_comparable_range}}",
-            "This range is directional and depends heavily on region and existing conditions.",
-          ],
-          visibilityCondition: "budget_mismatch_risk == high",
-        },
+        // Restore when bm_comparable_range is populated:
+        // {
+        //   title: "Comparable finish scope range (shown only when risk is high)",
+        //   bullets: [
+        //     "Comparable finish scopes often land around: {{bm_comparable_range}}",
+        //     "This range is directional and depends heavily on region and existing conditions.",
+        //   ],
+        //   visibilityCondition: "budget_mismatch_risk == high",
+        // },
       ],
     },
 

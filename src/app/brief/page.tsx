@@ -24,15 +24,12 @@ import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
 import { QUESTIONS } from "@/questions";
 import type { Question } from "@/questions";
 
-// ✅ rule renderer + rule data
+// Rule renderer + rule data (Budget BU-01/02/03 + Feasibility FS-01 when applicable)
 import { RuleOutput } from "@/components/RuleOutput";
 import { FS_01 } from "@/data/rules/fs-01";
-import { FS_02 } from "@/data/rules/fs-02";
 import { BU_01 } from "@/data/rules/bu-01";
 import { BU_02 } from "@/data/rules/bu-02";
 import { BU_03 } from "@/data/rules/bu-03";
-import { FN_01 } from "@/data/rules/fn-01";
-import { FN_02 } from "@/data/rules/fn-02";
 
 // ✅ budget heuristics (V1)
 import {
@@ -319,7 +316,6 @@ const rooms = (() => {
   const rangeFlex = resolveOne(answers, budgetIndex, "range_flexibility");
 
   const finishLevel = resolveOne(answers, budgetIndex, "finish_level");
-  const splurgeAreas = resolveMany(answers, budgetIndex, "splurge_areas").labels;
 
   // FCH style result (existing algo)
   const styleResult = scoreQuiz(answers as any);
@@ -329,53 +325,47 @@ const rooms = (() => {
 const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
 
 
-  // ✅ Budget fit (V1 heuristic)
+  // Budget fit (heuristic: complexity vs capacity; used for BU-01 trigger and snapshot display)
   const capacity = getBudgetCapacityPoints(answers);
   const complexity = computeComplexityPoints(answers);
   const budgetFit = capacity ? computeBudgetFit(complexity, capacity) : null;
 
-  // ✅ Rules to render (V1) — NOW ACTUALLY FILTERS BASE RULES BY triggerLogic
+  // Map budget_fit to budget_mismatch_risk for BU-01 trigger (internal; not displayed)
+  const budgetMismatchRisk =
+    budgetFit === "comfortable"
+      ? "low"
+      : budgetFit === "tight"
+        ? "moderate"
+        : budgetFit === "mismatch"
+          ? "high"
+          : "low";
+
+  // Recommendations: BU-01/02/03 (Budget) + FS-01 (Feasibility when living in home or unsure)
   const revyRules = (() => {
     const base: RevyRule[] = [
       ...asArray(FS_01),
-      ...asArray(FS_02),
       ...asArray(BU_01),
       ...asArray(BU_02),
       ...asArray(BU_03),
-      ...asArray(FN_02)
-
     ];
 
-    const projectForId = first(answers, "project_for"); // live_in | rental | flip
-
     const ctx = {
-      // FN rules
-      ownership_mode: projectForId,
-      ownership_intent: projectForId === "live_in" ? "live" : "rental",
-
-      // Budget rules
+      ownership_mode: first(answers, "project_for"),
+      ownership_intent: first(answers, "project_for") === "live_in" ? "live" : "rental",
       investment_range: first(answers, "investment_range"),
       finish_level: first(answers, "finish_level"),
       remodel_complexity_score: complexity,
       budget_fit: budgetFit ?? "unknown",
-
-      // Feasibility/scope rules like FS-01
-      occupancy: first(answers, "occupancy"), // full_time | not_living_there | living_unsure
+      budget_mismatch_risk: budgetMismatchRisk,
+      occupancy: first(answers, "occupancy"),
       scope_level: first(answers, "scope_level"),
       rooms: list(answers, "rooms"),
     };
 
-    const baseApplicable = base.filter((r) => {
-      if (!r?.triggerLogic) return true; // if no trigger, show by default
+    return base.filter((r) => {
+      if (!r?.triggerLogic) return true;
       return evalSimpleTrigger(r.triggerLogic, ctx);
     });
-
-    const fn01Applicable = FN_01.filter((r) => {
-      if (!r?.triggerLogic) return false;
-      return evalSimpleTrigger(r.triggerLogic, ctx);
-    });
-
-    return [...baseApplicable, ...fn01Applicable];
   })();
 
   return (
@@ -479,8 +469,20 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
               </div>
             </div>
 
-            
-         
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-black/50">
+                Budget fit
+              </div>
+              <div className="mt-1 text-black/80">
+                {budgetFit === "comfortable"
+                  ? "Comfortable"
+                  : budgetFit === "tight"
+                    ? "Tight"
+                    : budgetFit === "mismatch"
+                      ? "Mismatch"
+                      : "—"}
+              </div>
+            </div>
 
             <div>
               <div className="text-[11px] uppercase tracking-[0.2em] text-black/50">
@@ -501,7 +503,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
         {/* Design Direction */}
         <section className="space-y-2">
           <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-black/50">
-            Rêvy design direction
+            Design direction
           </h2>
           <div className="text-[11px] uppercase tracking-[0.2em] text-black/50">
             Home exterior: <span className="text-black/70">{exteriorLabel}</span>
@@ -546,16 +548,14 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
           </div>
         </section>
 
-        {/* Rêvy recommends */}
+        {/* Recommendations */}
         <section className="space-y-3">
           <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-black/50">
-            Rêvy recommends
+            Recommendations
           </h2>
-<p className="text-xs text-black/60 leading-relaxed">
-  Each recommendation is framed through one of three lenses—<strong>Feasibility</strong>,
-  <strong> Budget</strong>, or <strong>Finish Strategy</strong>—so you know whether it’s about
-  build realities given your constraints, investment alignment based on your scope, or where to best focus your design spend.
-</p>
+          <p className="text-xs text-black/60 leading-relaxed">
+            These recommendations focus on <strong>Budget Alignment</strong>—calculating if your scope fits your investment range—and <strong>Construction Realities</strong>, identifying potential risks to your timeline or sequencing before you move into the design phase.
+          </p>
 
           <div className="space-y-4">
             {revyRules.map((rule) => (

@@ -5,9 +5,9 @@ export const BU_03: RevyRule = {
   name: "Budget Guardrail: Plan for Surprises",
   category: "Budget · Risk",
 
-  // Hidden entirely for refresh-only scopes
+  // Hidden for light_refresh (cosmetic) only; show when scope is partial/full and includes demo-heavy rooms
   triggerLogic:
-    "remodel_type != refresh AND rooms include any of {whole_home, kitchen, laundry, primary_bath, guest_bath, secondary_bath, powder, kids_bath}",
+    "scope_level != light_refresh AND rooms include whole_home OR scope_level != light_refresh AND rooms include kitchen OR scope_level != light_refresh AND rooms include laundry OR scope_level != light_refresh AND rooms include primary_bath OR scope_level != light_refresh AND rooms include guest_bath OR scope_level != light_refresh AND rooms include secondary_bath OR scope_level != light_refresh AND rooms include powder OR scope_level != light_refresh AND rooms include kids_bath",
 
   primaryRecommendation:
     "Plan for some flexibility in your budget—projects that open walls or touch kitchens, baths, or utilities often uncover conditions that aren’t visible upfront.",
