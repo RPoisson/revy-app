@@ -223,7 +223,7 @@ export function RuleOutput({ rule }: { rule: RevyRule }) {
                 {s.advisory ? (
                   <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-4 space-y-1">
                     <div className="text-[11px] uppercase tracking-[0.2em] text-black/50">
-                      Rêvy advisory
+                      Advisory
                     </div>
                     <div className="text-sm text-black/70 leading-relaxed">
                       {s.advisory}

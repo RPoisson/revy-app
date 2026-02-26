@@ -1,5 +1,6 @@
 // src/app/page.tsx
 import Link from "next/link";
+import { StudioLogo } from "@/components/StudioLogo";
 
 export default function QuizIntroPage() {
   return (
@@ -7,9 +8,9 @@ export default function QuizIntroPage() {
       <div className="w-full max-w-xl space-y-8">
         {/* Context */}
         <div className="text-center space-y-3">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
 
           <h1 className="font-[var(--font-playfair)] text-3xl leading-tight">
             Let’s get clarity on your project, together.

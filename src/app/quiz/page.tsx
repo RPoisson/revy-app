@@ -13,6 +13,7 @@ import {
   clearAnswers,
   QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
+import { StudioLogo } from "@/components/StudioLogo";
 
 function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
   let changed = false;
@@ -143,9 +144,9 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
           <p className="text-sm text-black/70">Loading your project…</p>
         </div>
       </main>
@@ -156,9 +157,9 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             Something went wrong
           </h1>
@@ -183,9 +184,9 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center px-4 pt-6 pb-24 md:py-10">
         <div className="w-full max-w-xl flex flex-col gap-6">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
 
           <h1 className="font-[var(--font-playfair)] text-xl md:text-2xl leading-snug">
             What&apos;s your Style?
@@ -266,7 +267,7 @@ export default function QuizPage() {
             <span>
               Question {step + 1} of {total}
             </span>
-            <span>Studio RêvyTM</span>
+            <StudioLogo size="sm" className="text-black/60" />
           </div>
         </header>
 

@@ -5,6 +5,7 @@
 import "../globals.css";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { StudioLogo } from "@/components/StudioLogo";
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -42,9 +43,9 @@ export default function LoginPage() {
         
         {/* Branding & Header */}
         <div className="text-center space-y-3">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
           
           <p className="text-sm text-black/70 leading-relaxed">
             Please enter your project password to access the design portal.
@@ -93,7 +94,7 @@ export default function LoginPage() {
         {/* Footer Reassurance */}
         <div className="text-center">
           <p className="text-xs text-black/40">
-            Secure access for Studio Rêvy clients.
+            Secure access for Studio clients.
           </p>
         </div>
       </div>

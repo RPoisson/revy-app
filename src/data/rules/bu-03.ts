@@ -75,7 +75,7 @@ export const BU_03: RevyRule = {
       title: "How to reduce surprise-driven overruns",
       subsections: [
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
             "Expect most discoveries during demo and early rough-ins—this is normal",
             "Make plumbing, electrical, and structural allowances explicit in your contract with your builder, rather than buried",

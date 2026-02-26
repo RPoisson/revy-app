@@ -12,6 +12,7 @@ import {
   saveAnswers,
   type QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
+import { StudioLogo } from "@/components/StudioLogo";
 
 function qtyKey(optionId: string) {
   return `rooms_qty_${optionId}`;
@@ -108,9 +109,9 @@ export default function ScopePage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             Something went wrong
           </h1>
@@ -152,7 +153,7 @@ export default function ScopePage() {
             <span>
               Question {step + 1} of {total}
             </span>
-            <span>Studio Rêvy</span>
+            <StudioLogo size="sm" className="text-black/60" />
           </div>
         </header>
 

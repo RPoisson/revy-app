@@ -8,6 +8,7 @@ import type { Question } from "@/questions";
 import QuestionOptions from "@/app/quiz/components/QuestionOptions";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
 import { getAnswers, saveAnswers, clearAnswers, QuizAnswers } from "@/app/quiz/lib/answersStore";
+import { StudioLogo } from "@/components/StudioLogo";
 
 export default function BudgetPage() {
   const router = useRouter();
@@ -69,9 +70,9 @@ export default function BudgetPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             Something went wrong
           </h1>
@@ -113,7 +114,7 @@ export default function BudgetPage() {
             <span>
               Question {step + 1} of {total}
             </span>
-            <span>Studio RêvyTM</span>
+            <StudioLogo size="sm" className="text-black/60" />
           </div>
         </header>
 

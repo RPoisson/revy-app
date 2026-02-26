@@ -37,6 +37,7 @@ import {
   computeComplexityPoints,
   getBudgetCapacityPoints,
 } from "@/app/brief/budgetHeuristics";
+import { StudioLogo } from "@/components/StudioLogo";
 
 function first(answers: QuizAnswers, key: string): string | undefined {
   const v = answers[key];
@@ -236,9 +237,9 @@ export default function BriefPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             Preparing your brief…
           </h1>
@@ -257,9 +258,9 @@ export default function BriefPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-4">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/50" />
+          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             No project found
           </h1>
@@ -372,9 +373,9 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
     <main className="min-h-screen flex justify-center px-4 pt-8 pb-24 md:py-12">
       <div className="w-full max-w-2xl flex flex-col gap-8">
         <header className="space-y-2">
-          <p className="text-xs tracking-[0.2em] uppercase text-black/50">
-            Studio Rêvy™
-          </p>
+          <div className="flex justify-center md:justify-start">
+            <StudioLogo className="text-black/50" />
+          </div>
           <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug">
             Project Design Summary
           </h1>

@@ -135,7 +135,7 @@ export const FS_02: RevyRule = {
         "Even quoted lead times can slip. Pre-approving substitution rules helps protect the schedule.",
       subsections: [
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
             "Pre-approve substitutions with matching dimensions and mounting",
             "Avoid substitutions that change rough-ins or clearances",

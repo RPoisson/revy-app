@@ -66,7 +66,7 @@ OR occupancy = living_unsure AND rooms include bathroom
         "Living in the home limits demolition overlap and increases coordination complexity.",
       subsections: [
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
   
             "Avoid demolishing the kitchen and all bathrooms at the same time",
@@ -119,7 +119,7 @@ OR occupancy = living_unsure AND rooms include bathroom
           ],
         },
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
             "Some utility work requires extended shutoffs",
             "Full-time occupancy may not be feasible during these phases",
@@ -144,7 +144,7 @@ OR occupancy = living_unsure AND rooms include bathroom
         },
         
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
             "Environmental testing or remediation may be required once walls/floors are opened",
             "Living in the home during remediation phases may not be advisable",
@@ -170,7 +170,7 @@ OR occupancy = living_unsure AND rooms include bathroom
           ],
         },
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
             "Expect periods of sustained noise during drilling, framing, tile, and concrete work",
             "Quiet-hour constraints may extend timelines",
@@ -192,7 +192,7 @@ OR occupancy = living_unsure AND rooms include bathroom
           ],
         },
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
             "Construction zones introduce trip hazards, exposed wiring, and noise stress",
             "Some phases (demolition, utility work, remediation) may not be appropriate for full-time occupancy",
@@ -213,7 +213,7 @@ OR occupancy = living_unsure AND rooms include bathroom
           ],
         },
         {
-          title: "Rêvy Guidance",
+          title: "Guidance",
           bullets: [
             "Plan for displaced belongings (garage reorg, pod, or off-site storage)",
             "Lock design decisions early",
