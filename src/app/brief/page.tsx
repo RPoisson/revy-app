@@ -329,7 +329,9 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
   // Budget fit (heuristic: complexity vs capacity; used for BU-01 trigger and snapshot display)
   const capacity = getBudgetCapacityPoints(answers);
   const complexity = computeComplexityPoints(answers);
-  const budgetFit = capacity ? computeBudgetFit(complexity, capacity) : null;
+  const budgetFit = capacity
+    ? computeBudgetFit(complexity, capacity, answers)
+    : null;
 
   // Map budget_fit to budget_mismatch_risk for BU-01 trigger (internal; not displayed)
   const budgetMismatchRisk =
