@@ -59,6 +59,7 @@ export default function QuestionOptions({
   }, [question?.options, answers]);
 
   const safeShowIf = (opt: Option): boolean => {
+    if (!opt || typeof opt !== "object") return false;
     if (!opt.showIf) return true;
     try {
       return opt.showIf(answers);
@@ -68,6 +69,7 @@ export default function QuestionOptions({
   };
 
   const isDisabled = (opt: Option): boolean => {
+    if (!opt || typeof opt !== "object") return false;
     if (!opt.disabledIf) return false;
     try {
       return opt.disabledIf(answers);
@@ -76,7 +78,7 @@ export default function QuestionOptions({
     }
   };
   const getDisabledReason = (opt: Option): string => {
-    if (!opt.disabledReason) return "";
+    if (!opt || typeof opt !== "object" || !opt.disabledReason) return "";
     try {
       return opt.disabledReason(answers);
     } catch {
@@ -109,7 +111,7 @@ export default function QuestionOptions({
   const useExteriorFitLayout = QUESTIONS_WITH_EXTERIOR_FIT.includes(question.id as (typeof QUESTIONS_WITH_EXTERIOR_FIT)[number]);
 
   if (useExteriorFitLayout) {
-    const allOptions = question?.options ?? [];
+    const allOptions = (question?.options ?? []).filter((o): o is Option => !!o && typeof o === "object");
     const selectableOptions = allOptions.filter(
       (opt) => safeShowIf(opt) && !isDisabled(opt)
     );

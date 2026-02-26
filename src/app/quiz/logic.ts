@@ -26,14 +26,17 @@ export function isArchetypeSupported(
 }
 
 export function getSupportedArchetypesForCurrentExterior(answers: Answers): Set<ArchetypeId> {
+  const defaultSet = new Set<ArchetypeId>(["parisian", "provincial", "mediterranean"]);
+  if (!answers || typeof answers !== "object") return defaultSet;
   const exterior = answers["home_exterior_style"]?.[0];
-  if (!exterior) return new Set<ArchetypeId>(["parisian", "provincial", "mediterranean"]); // before Q1 chosen
+  if (!exterior) return defaultSet; // before Q1 chosen
   return new Set(SUPPORTED_ARCHETYPES_BY_STYLE[exterior] ?? ["parisian", "provincial", "mediterranean"]);
 }
 
 export function shouldShowSpace(spaceId: string, answers: Answers): boolean {
-  const supported = getSupportedArchetypesForCurrentExterior(answers);
-  const tag = SPACE_TAGS[spaceId];
+  try {
+    const supported = getSupportedArchetypesForCurrentExterior(answers);
+    const tag = SPACE_TAGS[spaceId];
 
   // If you ever have missing tag data, default to showing rather than hiding everything
   if (!tag?.archetype) return true;
@@ -42,4 +45,7 @@ export function shouldShowSpace(spaceId: string, answers: Answers): boolean {
   return Object.entries(tag.archetype).some(([a, weight]) => {
     return (weight ?? 0) > 0 && supported.has(a as ArchetypeId);
   });
+  } catch {
+    return true; // show on error so we don't hide everything
+  }
 }
