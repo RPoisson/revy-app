@@ -8,18 +8,20 @@ type StudioLogoProps = {
   className?: string;
 };
 
-// RÊVY logo (square icon with concentric circles)
-const SIZE = { default: 72, sm: 48 };
+// RÊVY logo (wordmark; aspect 1024×682)
+const LOGO_ASPECT = 1024 / 682;
+const HEIGHT = { default: 72, sm: 48 };
 
 export function StudioLogo({ size = "default", className = "" }: StudioLogoProps) {
-  const s = SIZE[size];
+  const h = HEIGHT[size];
+  const w = Math.round(h * LOGO_ASPECT);
 
   return (
     <Image
       src="/logo.png"
       alt="Rêvy"
-      width={s}
-      height={s}
+      width={w}
+      height={h}
       className={className}
       priority
     />

@@ -8,7 +8,7 @@ export default function QuizIntroPage() {
       <div className="w-full max-w-xl space-y-8">
         {/* Context */}
         <div className="text-center space-y-3">
-          <div className="flex justify-end">
+          <div className="flex justify-start">
             <StudioLogo className="text-black/50" />
           </div>
 

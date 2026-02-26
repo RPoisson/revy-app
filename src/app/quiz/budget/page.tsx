@@ -70,7 +70,7 @@ export default function BudgetPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-end">
+          <div className="flex justify-start">
             <StudioLogo className="text-black/50" />
           </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
@@ -110,11 +110,10 @@ export default function BudgetPage() {
               style={{ width: `${safeProgress}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[11px] text-black/60">
+          <div className="text-[11px] text-black/60">
             <span>
               Question {step + 1} of {total}
             </span>
-            <StudioLogo size="sm" className="text-black/60" />
           </div>
         </header>
 
