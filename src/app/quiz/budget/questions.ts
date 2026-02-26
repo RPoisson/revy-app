@@ -20,7 +20,6 @@ subtitle: "This reflects the total project investment—including construction l
       { id: "200_350", label: "$200k–$350k" },
       { id: "350_500", label: "$350k–$500k" },
       { id: "500_plus", label: "$500k+" },
-      { id: "not_sure", label: "Not sure yet" },
     ],
   },
   {
