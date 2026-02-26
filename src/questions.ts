@@ -34,13 +34,19 @@ export interface Question {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Color mood gating helpers
+// Color mood gating helpers (defensive: never throw for any answers shape)
 // ──────────────────────────────────────────────────────────────
 
 type Archetype = "parisian" | "provincial" | "mediterranean" | "unknown";
 
+function safeFirst(val: unknown): string | undefined {
+  if (Array.isArray(val) && val.length > 0 && typeof val[0] === "string") return val[0];
+  return undefined;
+}
+
 function selectedArchetypeFromAnswers(answers: Answers): Archetype {
-  const selected = (answers["space_home"] ?? [])[0];
+  if (!answers || typeof answers !== "object") return "unknown";
+  const selected = safeFirst(answers["space_home"]);
   if (selected === "home_01") return "parisian";
   if (selected === "home_02") return "provincial";
   if (selected === "home_03") return "mediterranean";
@@ -48,7 +54,9 @@ function selectedArchetypeFromAnswers(answers: Answers): Archetype {
 }
 
 function exteriorFamilyFromAnswers(answers: Answers): "sunwashed" | "modern" | "heritage" | "classic" {
-  const ext = ((answers["home_exterior_style"] ?? [])[0] ?? "").toLowerCase();
+  if (!answers || typeof answers !== "object") return "classic";
+  const raw = safeFirst(answers["home_exterior_style"]);
+  const ext = (raw ?? "").toLowerCase();
   if (["mediterranean_spanish", "ranch"].includes(ext)) return "sunwashed";
   if (["contemporary_modern", "midcentury_modern"].includes(ext)) return "modern";
   if (["victorian", "tudor_english_cottage", "craftsman"].includes(ext)) return "heritage";

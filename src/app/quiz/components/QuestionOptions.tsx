@@ -80,8 +80,22 @@ export default function QuestionOptions({
   // Special handling: Color Mood → split into Recommended vs Not best fit
   // ──────────────────────────────────────────────────────────────
   if (question.id === "color_mood") {
-    const recommended = visibleOptions.filter((o) => !isDisabled(o));
-    const notBestFit = visibleOptions.filter((o) => isDisabled(o));
+    const safeIsDisabled = (o: (typeof question.options)[0]): boolean => {
+      try {
+        return o.disabledIf ? o.disabledIf(answers) : false;
+      } catch {
+        return false;
+      }
+    };
+    const getDisabledReason = (opt: (typeof question.options)[0]): string => {
+      try {
+        return opt.disabledReason ? opt.disabledReason(answers) : "";
+      } catch {
+        return "";
+      }
+    };
+    const recommended = visibleOptions.filter((o) => !safeIsDisabled(o));
+    const notBestFit = visibleOptions.filter((o) => safeIsDisabled(o));
 
     return (
       <div className="space-y-6">
@@ -139,7 +153,7 @@ export default function QuestionOptions({
                   disabled={true}
                   onClick={() => {}}
                   showReason={true}
-                  reason={opt.disabledReason ? opt.disabledReason(answers) : ""}
+                  reason={getDisabledReason(opt)}
                   allowMultiple={question.allowMultiple}
                   questionId={question.id}
                   // ✅ counts not used here
