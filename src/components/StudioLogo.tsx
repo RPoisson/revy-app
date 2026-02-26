@@ -3,29 +3,29 @@
 import Image from "next/image";
 
 type StudioLogoProps = {
-  /** Size variant: "default" for main headers, "sm" for progress bars / compact areas */
+  /** Size variant: "default" matches marketing header; "sm" for compact areas */
   size?: "default" | "sm";
   className?: string;
 };
 
-// RÊVY logo (wordmark; aspect 1024×682)
-const LOGO_ASPECT = 1024 / 682;
-const HEIGHT = { default: 72, sm: 48 };
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 export function StudioLogo({ size = "default", className = "" }: StudioLogoProps) {
-  const h = HEIGHT[size];
-  const w = Math.round(h * LOGO_ASPECT);
+  // Match marketing site: revylogo.png, 120×120 intrinsic, responsive height
+  const sizeClasses =
+    size === "sm"
+      ? "h-10 w-auto sm:h-12"
+      : "h-16 w-auto sm:h-20 md:h-24 lg:h-28";
 
   return (
     <Image
-      src="/logo.png"
+      src={`${basePath}/revylogo.png`}
       alt="Rêvy"
-      width={w}
-      height={h}
-      className={`${className} mix-blend-screen`}
-      style={{ mixBlendMode: "screen" }}
+      width={120}
+      height={120}
       priority
       unoptimized
+      className={`${sizeClasses} ${className}`}
     />
   );
 }
