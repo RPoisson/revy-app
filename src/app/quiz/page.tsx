@@ -144,7 +144,7 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-center">
+          <div className="flex justify-end">
             <StudioLogo className="text-black/50" />
           </div>
           <p className="text-sm text-black/70">Loading your project…</p>
@@ -157,7 +157,7 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-center">
+          <div className="flex justify-end">
             <StudioLogo className="text-black/50" />
           </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
@@ -184,7 +184,7 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center px-4 pt-6 pb-24 md:py-10">
         <div className="w-full max-w-xl flex flex-col gap-6">
-          <div className="flex justify-center">
+          <div className="flex justify-end">
             <StudioLogo className="text-black/50" />
           </div>
 

@@ -237,7 +237,7 @@ export default function BriefPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-center">
+          <div className="flex justify-end">
             <StudioLogo className="text-black/50" />
           </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
@@ -258,7 +258,7 @@ export default function BriefPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-4">
-          <div className="flex justify-center">
+          <div className="flex justify-end">
             <StudioLogo className="text-black/50" />
           </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
@@ -373,7 +373,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
     <main className="min-h-screen flex justify-center px-4 pt-8 pb-24 md:py-12">
       <div className="w-full max-w-2xl flex flex-col gap-8">
         <header className="space-y-2">
-          <div className="flex justify-center md:justify-start">
+          <div className="flex justify-end">
             <StudioLogo className="text-black/50" />
           </div>
           <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug">
