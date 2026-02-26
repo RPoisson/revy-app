@@ -157,21 +157,29 @@ export const SCOPE_QUESTIONS: Question[] = [
         id: "refresh",
         label: "Refresh (no floorplan/layout changes)",
         subtitle: "Paint, lighting, minor updates",
+        tooltip:
+          "Choose this for aesthetic updates only. No plumbing work is involved beyond perhaps a simple faucet swap.",
       },
       {
         id: "partial",
         label: "Partial renovation",
         subtitle: "Some construction / targeted rooms",
+        tooltip:
+          "Choose this if you are replacing fixtures (sinks, toilets) in their existing locations. Includes minor electrical and cabinetry adjustments.",
       },
       {
         id: "full",
         label: "Full renovation",
         subtitle: "Major construction and rework",
+        tooltip:
+          "Required if moving plumbing. Choose this if you are reconfiguring the layout, moving 'wet' lines (toilets/showers), or tearing walls down to the studs.",
       },
       {
         id: "new_build",
         label: "New build",
         subtitle: "Ground-up or major addition",
+        tooltip:
+          "Choose for ground-up construction or new additions requiring entirely new plumbing systems and tie-ins.",
       },
       { id: "not_sure", label: "Not sure yet" },
     ],
