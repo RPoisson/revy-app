@@ -350,9 +350,21 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
       ...asArray(BU_03),
     ];
 
+    const projectForId = first(answers, "project_for");
+    const ownershipMode =
+      projectForId === "personal_home"
+        ? "live_in"
+        : projectForId === "investment_rental"
+          ? "rental"
+          : projectForId === "immediate_flip"
+            ? "flip"
+            : projectForId;
+    const ownershipIntent =
+      projectForId === "personal_home" ? "live" : "rental";
+
     const ctx = {
-      ownership_mode: first(answers, "project_for"),
-      ownership_intent: first(answers, "project_for") === "live_in" ? "live" : "rental",
+      ownership_mode: ownershipMode,
+      ownership_intent: ownershipIntent,
       investment_range: first(answers, "investment_range"),
       finish_level: first(answers, "finish_level"),
       remodel_complexity_score: complexity,

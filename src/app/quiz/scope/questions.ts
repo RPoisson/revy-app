@@ -14,9 +14,9 @@ export const SCOPE_QUESTIONS: Question[] = [
     layout: "stack",
     required: true,
     options: [
-      { id: "live_in", label: "My home (Will live here after the project is finished)" },
-      { id: "rental", label: "My rental property (I own it, but it will be tenant occupied)" },
-      { id: "flip", label: "Immediate flip / resale" },
+      { id: "personal_home", label: "Personal Residence (Primary or Secondary Home)" },
+      { id: "investment_rental", label: "Investment Rental Property (Tenant-occupied / Not owner-occupied)" },
+      { id: "immediate_flip", label: "Immediate Flip / Resale (Focus on market appeal and ROI)" },
     ],
   },
 
@@ -84,21 +84,21 @@ export const SCOPE_QUESTIONS: Question[] = [
     ],
   },
 
- // {
-  //   id: "permit_required",
-   //  title: "Do you plan to pull permits?",
-   //  subtitle: "This helps us provide guidance on potential constraints.",
-   //  type: "single-image",
-   //  allowMultiple: false,
-   //  layout: "stack",
-   //  required: true,
-   //  options: [
-    //   { id: "no_permit", label: "No" },
-    //   { id: "yes", label: "Yes" },
-    //   { id: "yes_permit_received", label: "Yes (already in progress/received)" },
-    //   { id: "permit_unsure", label: "Not sure yet" },
-   //  ],
- //  },
+  //{
+   // id: "permit_required",
+   // title: "Do you plan to pull permits?",
+   // subtitle: "This helps us provide guidance on potential constraints.",
+   // type: "single-image",
+   // allowMultiple: false,
+   // layout: "stack",
+   // required: true,
+   // options: [
+   //   { id: "no_permit", label: "No" },
+    //  { id: "yes", label: "Yes" },
+    //  { id: "yes_permit_received", label: "Yes (already in progress/received)" },
+    //  { id: "permit_unsure", label: "Not sure yet" },
+   // ],
+ // },
 
  {
     id: "rooms",
