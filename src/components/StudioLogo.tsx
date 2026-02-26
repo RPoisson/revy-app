@@ -22,8 +22,10 @@ export function StudioLogo({ size = "default", className = "" }: StudioLogoProps
       alt="Rêvy"
       width={w}
       height={h}
-      className={className}
+      className={`${className} mix-blend-screen`}
+      style={{ mixBlendMode: "screen" }}
       priority
+      unoptimized
     />
   );
 }

@@ -43,8 +43,8 @@ export default function LoginPage() {
         
         {/* Branding & Header */}
         <div className="text-center space-y-3">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
+          <div className="flex justify-center">
+            <StudioLogo className="text-black/70" />
           </div>
           
           <p className="text-sm text-black/70 leading-relaxed">
