@@ -23,18 +23,40 @@ function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
     const current = allAnswers[q.id];
     if (!current || current.length === 0) continue;
 
-    // If the question itself is not visible, clear it
-    if (q.showIf && !q.showIf(allAnswers)) {
+    // If the question itself is not visible, clear it (guard: never throw)
+    let questionVisible = true;
+    if (q.showIf) {
+      try {
+        questionVisible = q.showIf(allAnswers);
+      } catch {
+        questionVisible = true;
+      }
+    }
+    if (!questionVisible) {
       next[q.id] = [];
       changed = true;
       continue;
     }
 
-    // Keep only options that are BOTH visible (showIf) and selectable (not disabledIf)
+    // Keep only options that are BOTH visible (showIf) and selectable (not disabledIf); never throw
     const selectableOptionIds = new Set(
       q.options
-        .filter((opt) => (opt.showIf ? opt.showIf(allAnswers) : true))
-        .filter((opt) => (opt.disabledIf ? !opt.disabledIf(allAnswers) : true))
+        .filter((opt) => {
+          if (!opt.showIf) return true;
+          try {
+            return opt.showIf(allAnswers);
+          } catch {
+            return true;
+          }
+        })
+        .filter((opt) => {
+          if (!opt.disabledIf) return true;
+          try {
+            return !opt.disabledIf(allAnswers);
+          } catch {
+            return true; // treat as selectable on error so we don't prune
+          }
+        })
         .map((opt) => opt.id)
     );
 

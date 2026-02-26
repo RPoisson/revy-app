@@ -47,9 +47,14 @@ export default function QuestionOptions({
   const isExterior = question.id === "home_exterior_style";
 
   const visibleOptions = useMemo(() => {
-    return question.options.filter((opt) =>
-      opt.showIf ? opt.showIf(answers) : true
-    );
+    return question.options.filter((opt) => {
+      if (!opt.showIf) return true;
+      try {
+        return opt.showIf(answers);
+      } catch {
+        return true; // show option on error so we don't empty the list
+      }
+    });
   }, [question.options, answers]);
 
   const isDisabled = (opt: Option) =>
