@@ -5,14 +5,16 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { StudioLogo } from "@/components/StudioLogo";
 import {
   buildPlaceholderDesignConcept,
   type DesignConceptDetail,
-  type MoodboardAspectRatio,
 } from "./designConceptData";
 import type { ArchetypeId } from "@/app/style/styleDNA";
+import { ALL_ROOMS, getRoomLayout } from "./roomLayouts";
+import { RoomSelector } from "./RoomSelector";
+import { MoodboardCanvasView } from "./MoodboardCanvasView";
 
 const PLACEHOLDER_ARCHETYPE: ArchetypeId = "provincial";
 const PLACEHOLDER_INVESTMENT_LABEL = "$200k–$350k";
@@ -55,20 +57,9 @@ function SectionHeader({
   );
 }
 
-function aspectRatioClass(ratio: MoodboardAspectRatio): string {
-  switch (ratio) {
-    case "1:1":
-      return "aspect-square";
-    case "1.5:1":
-      return "aspect-[3/2]";
-    case "3:4":
-      return "aspect-[3/4]";
-    default:
-      return "aspect-[3/2]";
-  }
-}
-
 export default function DesignConceptPage() {
+  const [selectedRoomId, setSelectedRoomId] = useState(ALL_ROOMS[0].id);
+
   const data: DesignConceptDetail = useMemo(
     () => buildPlaceholderDesignConcept(PLACEHOLDER_ARCHETYPE, PLACEHOLDER_INVESTMENT_LABEL),
     []
@@ -153,78 +144,32 @@ export default function DesignConceptPage() {
         </div>
       </section>
 
-      {/* ─── 02 Design Concept Moodboard (1.5:1, read-only; no Slot Editor) ─── */}
+      {/* ─── 02 Design Concept Moodboard (Lovable exact layouts; room selector; no Slot Editor) ─── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-8">
         <SectionHeader
           number="02"
           title="Design Concept Moodboard"
-          subtitle="Visual material board — normalized aspect ratios, concept label, palette strip."
+          subtitle="Visual material boards for each room in scope. Select a room to view its layout."
         />
+        <div className="w-full max-w-[1000px] mx-auto mb-6">
+          <RoomSelector
+            rooms={ALL_ROOMS}
+            selectedRoomId={selectedRoomId}
+            onSelect={setSelectedRoomId}
+          />
+        </div>
         <div className="max-w-[1000px] mx-auto">
-          <div className="w-full" style={{ ...CARD_STYLE, padding: 18 }}>
-            <div
-              className="relative w-full overflow-hidden rounded-[14px]"
-              style={{
-                aspectRatio: "1.5",
-                background: "#f8f5ee",
-              }}
-            >
-              {/* Image grid */}
-              <div className="absolute inset-0 flex flex-col">
-                <div className="flex-1 grid grid-cols-3 gap-2 p-3">
-                  {moodboard.images.map((img, i) => (
-                    <div
-                      key={i}
-                      className={`relative overflow-hidden rounded-lg bg-black/5 ${aspectRatioClass(img.aspectRatio)}`}
-                    >
-                      <Image
-                        src={img.src}
-                        alt={img.conceptLabel ?? `Mood ${i + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 33vw, 200px"
-                        unoptimized={img.src.startsWith("data:")}
-                      />
-                      {img.conceptLabel && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[10px] px-2 py-1 truncate">
-                          {img.conceptLabel}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                {/* Palette strip (Lovable: right edge) */}
-                <div
-                  className="absolute right-[3%] top-[10%] w-[10%] h-[62%] rounded-lg flex flex-col gap-[2%] p-[1.2%] box-border"
-                  style={{
-                    background: "#ffffff",
-                    outline: "1px solid #ffffff",
-                    boxShadow: "0 0 0 1px rgba(17,17,17,0.08)",
-                  }}
-                >
-                  {moodboard.paletteStripColors.map((hex, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 min-h-0 rounded"
-                      style={{ backgroundColor: hex }}
-                      title={hex}
-                    />
-                  ))}
-                </div>
-                {/* Concept label (Lovable: bottom left inside canvas) */}
-                <div
-                  className="absolute bottom-[2%] left-[3.7%] right-[15%] pointer-events-none"
-                >
-                  <span className="font-[var(--font-playfair)] text-sm tracking-[0.2em] uppercase text-black/50">
-                    {moodboard.conceptLabel} Concept
-                  </span>
-                  <div
-                    className="mt-1 h-px w-full bg-black/20"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          {(() => {
+            const layout = getRoomLayout(selectedRoomId);
+            if (!layout) return null;
+            return (
+              <MoodboardCanvasView
+                layout={layout}
+                paletteColors={moodboard.paletteStripColors}
+                conceptLabel={(layout.displayName ?? layout.name) + " — " + moodboard.conceptLabel}
+              />
+            );
+          })()}
         </div>
       </section>
 
