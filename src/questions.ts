@@ -120,18 +120,6 @@ required: true,
       { id: "home_03", label: "Sun-kissed & Relaxed", imageUrl: "/quiz/q2/home_03.jpg", showIf: (answers) => isArchetypeSupported(answers, "mediterranean") },
     ],
   },
-  {
-    id: "light_color",
-    title: "What kind of light and color balance do you prefer?",
-    type: "single-image",
-    allowMultiple: false,
-required: true,
-    options: [
-      { id: "light_01", label: "Bright & Airy", imageUrl: "/quiz/q3/light_01.jpg" },
-      { id: "light_02", label: "Balanced with Contrast", imageUrl: "/quiz/q3/light_02.jpg" },
-      { id: "light_03", label: "Moody & Dramatic", imageUrl: "/quiz/q3/light_03.jpg" },
-    ],
-  },
 
 {
     id: "material_palette",
@@ -157,8 +145,18 @@ required: true,
       { id: "feel_03", label: "Layered & Collected", imageUrl: "/quiz/q6/feel_03.jpg" },
     ],
   },
-
-
+  {
+    id: "light_color",
+    title: "What kind of light and color balance do you prefer?",
+    type: "single-image",
+    allowMultiple: false,
+    required: true,
+    options: [
+      { id: "light_01", label: "Bright & Airy", imageUrl: "/quiz/q3/light_01.jpg" },
+      { id: "light_02", label: "Balanced with Contrast", imageUrl: "/quiz/q3/light_02.jpg" },
+      { id: "light_03", label: "Moody & Dramatic", imageUrl: "/quiz/q3/light_03.jpg" },
+    ],
+  },
   {
     id: "color_mood",
     title: "What’s your ideal color mood?",
