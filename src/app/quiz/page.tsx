@@ -23,21 +23,7 @@ function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
     const current = allAnswers[q.id];
     if (!current || current.length === 0) continue;
 
-    // If the question itself is not visible, clear it (guard: never throw)
-    let questionVisible = true;
-    if (q.showIf) {
-      try {
-        questionVisible = q.showIf(allAnswers);
-      } catch {
-        questionVisible = true;
-      }
-    }
-    if (!questionVisible) {
-      next[q.id] = [];
-      changed = true;
-      continue;
-    }
-
+    // Questions are never disabled; only prune which responses are still valid (visible + selectable)
     // Keep only options that are BOTH visible (showIf) and selectable (not disabledIf); never throw
     const selectableOptionIds = new Set(
       q.options

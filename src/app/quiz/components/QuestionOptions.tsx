@@ -47,7 +47,8 @@ export default function QuestionOptions({
   const isExterior = question.id === "home_exterior_style";
 
   const visibleOptions = useMemo(() => {
-    return question.options.filter((opt) => {
+    const opts = question?.options ?? [];
+    return opts.filter((opt) => {
       if (!opt.showIf) return true;
       try {
         return opt.showIf(answers);
@@ -55,10 +56,24 @@ export default function QuestionOptions({
         return true; // show option on error so we don't empty the list
       }
     });
-  }, [question.options, answers]);
+  }, [question?.options, answers]);
 
-  const isDisabled = (opt: Option) =>
-    opt.disabledIf ? opt.disabledIf(answers) : false;
+  const isDisabled = (opt: Option): boolean => {
+    if (!opt.disabledIf) return false;
+    try {
+      return opt.disabledIf(answers);
+    } catch {
+      return false;
+    }
+  };
+  const getDisabledReason = (opt: Option): string => {
+    if (!opt.disabledReason) return "";
+    try {
+      return opt.disabledReason(answers);
+    } catch {
+      return "";
+    }
+  };
 
   const handleClick = (opt: Option) => {
     if (isDisabled(opt)) return;
@@ -84,7 +99,7 @@ export default function QuestionOptions({
   // ──────────────────────────────────────────────────────────────
   // Special handling: Color Mood → split into Recommended vs Not best fit
   // ──────────────────────────────────────────────────────────────
-  if (question.id === "color_mood") {
+  if (false && question.id === "color_mood") {
     const safeIsDisabled = (o: (typeof question.options)[0]): boolean => {
       try {
         return o.disabledIf ? o.disabledIf(answers) : false;
@@ -99,8 +114,14 @@ export default function QuestionOptions({
         return "";
       }
     };
-    const recommended = visibleOptions.filter((o) => !safeIsDisabled(o));
-    const notBestFit = visibleOptions.filter((o) => safeIsDisabled(o));
+    // Ensure we always have options (fallback if visibleOptions is empty)
+    const optionsToShow =
+      visibleOptions.length > 0 ? visibleOptions : (question.options ?? []);
+    const recommended = optionsToShow.filter((o) => !safeIsDisabled(o));
+    const notBestFit = optionsToShow.filter((o) => safeIsDisabled(o));
+    const recommendedFinal =
+      recommended.length > 0 ? recommended : optionsToShow;
+    const notBestFitFinal = recommended.length > 0 ? notBestFit : [];
 
     return (
       <div className="space-y-6">
@@ -115,7 +136,7 @@ export default function QuestionOptions({
           </p>
 
           <div className={baseLayoutClasses}>
-            {recommended.map((opt) => (
+            {recommendedFinal.map((opt) => (
               <OptionTile
                 key={opt.id}
                 opt={opt}
@@ -137,7 +158,7 @@ export default function QuestionOptions({
         </div>
 
         {/* Not the best fit */}
-        {notBestFit.length > 0 && (
+        {notBestFitFinal.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-neutral-900">
               Not the best fit for this project
@@ -149,7 +170,7 @@ export default function QuestionOptions({
             </p>
 
             <div className={baseLayoutClasses}>
-              {notBestFit.map((opt) => (
+              {notBestFitFinal.map((opt) => (
                 <OptionTile
                   key={opt.id}
                   opt={opt}
@@ -209,11 +230,13 @@ export default function QuestionOptions({
   }, [openTooltipOptionId]);
 
   // ──────────────────────────────────────────────────────────────
-  // Default rendering for all other questions
+  // Default rendering for all other questions (including color_mood)
   // ──────────────────────────────────────────────────────────────
+  const optionsToRender =
+    visibleOptions.length > 0 ? visibleOptions : (question?.options ?? []);
   return (
     <div ref={tooltipContainerRef} className={baseLayoutClasses}>
-      {visibleOptions.map((opt: Option) => {
+      {optionsToRender.map((opt: Option) => {
         const isActive = selected.includes(opt.id);
         const disabled = isDisabled(opt);
 
@@ -229,9 +252,7 @@ export default function QuestionOptions({
             disabled={disabled}
             onClick={() => handleClick(opt)}
             showReason={disabled}
-            reason={
-              disabled && opt.disabledReason ? opt.disabledReason(answers) : ""
-            }
+            reason={disabled ? getDisabledReason(opt) : ""}
             allowMultiple={question.allowMultiple}
             questionId={question.id}
             showQty={needsQty}
