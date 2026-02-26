@@ -9,7 +9,7 @@ type StudioLogoProps = {
 };
 
 // RÊVY logo (square icon with concentric circles)
-const SIZE = { default: 36, sm: 24 };
+const SIZE = { default: 72, sm: 48 };
 
 export function StudioLogo({ size = "default", className = "" }: StudioLogoProps) {
   const s = SIZE[size];
