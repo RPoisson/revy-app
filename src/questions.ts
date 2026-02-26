@@ -34,74 +34,32 @@ export interface Question {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Color mood gating helpers (defensive: never throw for any answers shape)
+// Color mood gating by light balance (defensive: never throw)
 // ──────────────────────────────────────────────────────────────
-
-type Archetype = "parisian" | "provincial" | "mediterranean" | "unknown";
 
 function safeFirst(val: unknown): string | undefined {
   if (Array.isArray(val) && val.length > 0 && typeof val[0] === "string") return val[0];
   return undefined;
 }
 
-function selectedArchetypeFromAnswers(answers: Answers): Archetype {
-  if (!answers || typeof answers !== "object") return "unknown";
-  const selected = safeFirst(answers["space_home"]);
-  if (selected === "home_01") return "parisian";
-  if (selected === "home_02") return "provincial";
-  if (selected === "home_03") return "mediterranean";
-  return "unknown";
-}
-
-function exteriorFamilyFromAnswers(answers: Answers): "sunwashed" | "modern" | "heritage" | "classic" {
-  if (!answers || typeof answers !== "object") return "classic";
-  const raw = safeFirst(answers["home_exterior_style"]);
-  const ext = (raw ?? "").toLowerCase();
-  if (["mediterranean_spanish", "ranch"].includes(ext)) return "sunwashed";
-  if (["contemporary_modern", "midcentury_modern"].includes(ext)) return "modern";
-  if (["victorian", "tudor_english_cottage", "craftsman"].includes(ext)) return "heritage";
-  return "classic";
-}
-
 type PaletteId = "mood_01" | "mood_02" | "mood_03" | "mood_04" | "mood_05";
 
-function supportedPalettesByArchetype(archetype: Archetype): Set<PaletteId> {
-  switch (archetype) {
-    case "parisian":
-      return new Set<PaletteId>(["mood_01", "mood_02", "mood_03", "mood_04"]);
-    case "provincial":
-      return new Set<PaletteId>(["mood_01", "mood_02", "mood_04"]);
-    case "mediterranean":
-      return new Set<PaletteId>(["mood_01", "mood_03", "mood_05"]);
-    default:
-      return new Set<PaletteId>(["mood_01", "mood_02", "mood_03", "mood_04", "mood_05"]);
-  }
+/** Color mood selectable by light balance: Bright & Airy → mood_01, mood_05; Balanced → mood_05, mood_02, mood_03; Moody → mood_03, mood_04 */
+const MOODS_BY_LIGHT: Record<string, Set<PaletteId>> = {
+  light_01: new Set<PaletteId>(["mood_01", "mood_05"]),
+  light_02: new Set<PaletteId>(["mood_05", "mood_02", "mood_03"]),
+  light_03: new Set<PaletteId>(["mood_03", "mood_04"]),
+};
+
+function isPaletteSelectableByLight(paletteId: PaletteId, answers: Answers): boolean {
+  if (!answers || typeof answers !== "object") return true;
+  const light = safeFirst(answers["light_color"]);
+  if (!light) return true;
+  return MOODS_BY_LIGHT[light]?.has(paletteId) ?? true;
 }
 
-function isPaletteDisallowedByExterior(paletteId: PaletteId, answers: Answers): boolean {
-  const fam = exteriorFamilyFromAnswers(answers);
-  if (fam === "sunwashed") {
-    if (paletteId === "mood_02") return true;
-    if (paletteId === "mood_04") return true;
-  }
-  return false;
-}
-
-function isPaletteSelectable(paletteId: PaletteId, answers: Answers): boolean {
-  const archetype = selectedArchetypeFromAnswers(answers);
-  const supported = supportedPalettesByArchetype(archetype).has(paletteId);
-  if (!supported) return false;
-  if (isPaletteDisallowedByExterior(paletteId, answers)) return false;
-  return true;
-}
-
-function notBestFitReason(paletteId: PaletteId, answers: Answers): string {
-  const fam = exteriorFamilyFromAnswers(answers);
-  if (fam === "sunwashed") {
-    if (paletteId === "mood_02") return "High contrast can read too sharp against a sun-washed exterior.";
-    if (paletteId === "mood_04") return "A very moody palette can feel heavy in a sun-washed architectural context.";
-  }
-  return "Not the strongest fit for the home’s exterior character and the overall direction of this project.";
+function notBestFitReason(_paletteId: PaletteId, _answers: Answers): string {
+  return ""; // not shown in UI for color_mood
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -212,35 +170,35 @@ required: true,
         id: "mood_01",
         label: "Soft Neutrals & Warm Whites",
         imageUrl: "/quiz/q8/mood_01.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood_01", answers),
+        disabledIf: (answers) => !isPaletteSelectableByLight("mood_01", answers),
         disabledReason: (answers) => notBestFitReason("mood_01", answers),
       },
       {
         id: "mood_02",
-        label: "Neutral with High Contrast",
+        label: "High Contrast Neutrals (Cream, Charcoal, Navy)",
         imageUrl: "/quiz/q8/mood_02.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood_02", answers),
+        disabledIf: (answers) => !isPaletteSelectableByLight("mood_02", answers),
         disabledReason: (answers) => notBestFitReason("mood_02", answers),
       },
       {
         id: "mood_03",
-        label: "Deep Jewel Tones",
+        label: "Jewel Tones (Green, Teal, Burgundy, Navy)",
         imageUrl: "/quiz/q8/mood_03.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood_03", answers),
+        disabledIf: (answers) => !isPaletteSelectableByLight("mood_03", answers),
         disabledReason: (answers) => notBestFitReason("mood_03", answers),
       },
       {
         id: "mood_04",
-        label: "Dramatic & Moody",
+        label: "Deep Muted Colors (Plum, Charcoal, Green, Brown)",
         imageUrl: "/quiz/q8/mood_04.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood_04", answers),
+        disabledIf: (answers) => !isPaletteSelectableByLight("mood_04", answers),
         disabledReason: (answers) => notBestFitReason("mood_04", answers),
       },
       {
         id: "mood_05",
-        label: "Airy & Bright Naturals",
+        label: "Nature-inspired (Cream, Blue, Green)",
         imageUrl: "/quiz/q8/mood_05.jpg",
-        disabledIf: (answers) => !isPaletteSelectable("mood_05", answers),
+        disabledIf: (answers) => !isPaletteSelectableByLight("mood_05", answers),
         disabledReason: (answers) => notBestFitReason("mood_05", answers),
       },
     ],

@@ -147,15 +147,23 @@ export default function QuestionOptions({
     const notFitOptions = allOptions.filter(
       (opt) => !safeShowIf(opt) || isDisabled(opt)
     );
+    const isColorMood = question.id === "color_mood";
 
     return (
       <div ref={tooltipContainerRef} className="space-y-8">
+        {isColorMood && (
+          <p className="text-sm text-black/70 leading-relaxed">
+            These options don&apos;t align with your previous style selections. You can still browse them for inspiration.
+          </p>
+        )}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-neutral-900">
             Choices you can choose from
           </h3>
           <p className="text-xs text-black/70 leading-relaxed">
-            These options fit your home&apos;s exterior style.
+            {isColorMood
+              ? "These options fit your light and color balance."
+              : "These options fit your home&apos;s exterior style."}
           </p>
 
           <div className={baseLayoutClasses}>
@@ -186,12 +194,16 @@ export default function QuestionOptions({
         {notFitOptions.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-neutral-900">
-              Not a fit for your home&apos;s exterior style
+              {isColorMood
+                ? "Not a fit for your previous style selections"
+                : "Not a fit for your home&apos;s exterior style"}
             </h3>
-            <p className="text-xs text-black/70 leading-relaxed">
-              These options don&apos;t align with the exterior style you
-              selected. You can still browse them for inspiration.
-            </p>
+            {!isColorMood && (
+              <p className="text-xs text-black/70 leading-relaxed">
+                These options don&apos;t align with the exterior style you
+                selected. You can still browse them for inspiration.
+              </p>
+            )}
 
             <div className={baseLayoutClasses}>
               {notFitOptions.map((opt) => (
@@ -202,10 +214,9 @@ export default function QuestionOptions({
                   isActive={false}
                   disabled={true}
                   onClick={() => {}}
-                  showReason={true}
+                  showReason={!isColorMood}
                   reason={
-                    getDisabledReason(opt) ||
-                    "Doesn't align with your previous style inputs."
+                    isColorMood ? "" : (getDisabledReason(opt) || "Doesn't align with your previous style inputs.")
                   }
                   allowMultiple={question.allowMultiple}
                   questionId={question.id}
