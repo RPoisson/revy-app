@@ -58,6 +58,15 @@ export default function QuestionOptions({
     });
   }, [question?.options, answers]);
 
+  const safeShowIf = (opt: Option): boolean => {
+    if (!opt.showIf) return true;
+    try {
+      return opt.showIf(answers);
+    } catch {
+      return true;
+    }
+  };
+
   const isDisabled = (opt: Option): boolean => {
     if (!opt.disabledIf) return false;
     try {
@@ -96,47 +105,30 @@ export default function QuestionOptions({
       ? "grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3"
       : "flex flex-col gap-3 md:gap-4";
 
-  // ──────────────────────────────────────────────────────────────
-  // Special handling: Color Mood → split into Recommended vs Not best fit
-  // ──────────────────────────────────────────────────────────────
-  if (false && question.id === "color_mood") {
-    const safeIsDisabled = (o: (typeof question.options)[0]): boolean => {
-      try {
-        return o.disabledIf ? o.disabledIf(answers) : false;
-      } catch {
-        return false;
-      }
-    };
-    const getDisabledReason = (opt: (typeof question.options)[0]): string => {
-      try {
-        return opt.disabledReason ? opt.disabledReason(answers) : "";
-      } catch {
-        return "";
-      }
-    };
-    // Ensure we always have options (fallback if visibleOptions is empty)
-    const optionsToShow =
-      visibleOptions.length > 0 ? visibleOptions : (question.options ?? []);
-    const recommended = optionsToShow.filter((o) => !safeIsDisabled(o));
-    const notBestFit = optionsToShow.filter((o) => safeIsDisabled(o));
-    const recommendedFinal =
-      recommended.length > 0 ? recommended : optionsToShow;
-    const notBestFitFinal = recommended.length > 0 ? notBestFit : [];
+  const QUESTIONS_WITH_EXTERIOR_FIT = ["spaces_appeal", "space_home", "color_mood"] as const;
+  const useExteriorFitLayout = QUESTIONS_WITH_EXTERIOR_FIT.includes(question.id as (typeof QUESTIONS_WITH_EXTERIOR_FIT)[number]);
+
+  if (useExteriorFitLayout) {
+    const allOptions = question?.options ?? [];
+    const selectableOptions = allOptions.filter(
+      (opt) => safeShowIf(opt) && !isDisabled(opt)
+    );
+    const notFitOptions = allOptions.filter(
+      (opt) => !safeShowIf(opt) || isDisabled(opt)
+    );
 
     return (
-      <div className="space-y-6">
-        {/* Recommended */}
-        <div className="space-y-2">
+      <div className="space-y-8">
+        <div className="space-y-3">
           <h3 className="text-sm font-semibold text-neutral-900">
-            Recommended palettes
+            Choices you can choose from
           </h3>
-          <p className="text-sm text-black/70 leading-relaxed">
-            These options are the strongest match for the home’s character and
-            the overall direction of this project.
+          <p className="text-xs text-black/70 leading-relaxed">
+            These options fit your home&apos;s exterior style.
           </p>
 
           <div className={baseLayoutClasses}>
-            {recommendedFinal.map((opt) => (
+            {selectableOptions.map((opt) => (
               <OptionTile
                 key={opt.id}
                 opt={opt}
@@ -157,20 +149,18 @@ export default function QuestionOptions({
           </div>
         </div>
 
-        {/* Not the best fit */}
-        {notBestFitFinal.length > 0 && (
-          <div className="space-y-2">
+        {notFitOptions.length > 0 && (
+          <div className="space-y-3">
             <h3 className="text-sm font-semibold text-neutral-900">
-              Not the best fit for this project
+              Not a fit for your home&apos;s exterior style
             </h3>
-            <p className="text-sm text-black/70 leading-relaxed">
-              These palettes can be beautiful, but they’re less likely to feel
-              cohesive with the exterior character and the direction of this
-              project.
+            <p className="text-xs text-black/70 leading-relaxed">
+              These options don&apos;t align with the exterior style you
+              selected. You can still browse them for inspiration.
             </p>
 
             <div className={baseLayoutClasses}>
-              {notBestFitFinal.map((opt) => (
+              {notFitOptions.map((opt) => (
                 <OptionTile
                   key={opt.id}
                   opt={opt}
@@ -179,10 +169,12 @@ export default function QuestionOptions({
                   disabled={true}
                   onClick={() => {}}
                   showReason={true}
-                  reason={getDisabledReason(opt)}
+                  reason={
+                    getDisabledReason(opt) ||
+                    "Doesn't align with your previous style inputs."
+                  }
                   allowMultiple={question.allowMultiple}
                   questionId={question.id}
-                  // ✅ counts not used here
                   showQty={false}
                   qtyValue=""
                   onQtyChange={() => {}}
