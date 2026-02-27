@@ -390,17 +390,20 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
   return (
     <ProjectRequiredGuard>
     {hasAnyAnswers && (
-    <main className="min-h-screen flex justify-center px-4 pt-8 pb-24 md:py-12">
-      <div className="w-full max-w-2xl flex flex-col gap-8">
-        <header>
-          <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug text-black">
+    <main className="min-h-screen bg-[var(--background)]">
+      <div className="border-b border-black/10 bg-white/60 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center">
+          <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug text-black mb-3">
             Project Plan
           </h1>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-black/50 mt-1">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-black/50">
             Built from your scope, investment range, constraints, and taste.
           </p>
-        </header>
+        </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
         {/* Project Snapshot */}
         <section className="rounded-2xl border border-black/10 bg-white/60 p-5 md:p-6 space-y-5">
           <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-black/50">
@@ -630,6 +633,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
             )}
           </div>
         </section>
+        </div>
       </div>
     </main>
     )}
