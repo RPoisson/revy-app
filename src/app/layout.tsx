@@ -19,6 +19,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Rêvy — Design, made smarter",
   description: "Discover your French-California interior StyleDNA.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+  },
 };
 
 export const viewport: Viewport = {

@@ -33,7 +33,7 @@ export default function DesignConceptPage() {
   return (
     <div className="min-h-screen bg-[var(--background)]" data-design-concept-detail>
       {!designsCreated && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:pl-16 pt-6 pb-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:pl-12 pt-6 pb-12">
           <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900">
             <p className="font-medium">No designs created yet</p>
             <p className="mt-1 text-amber-800/90">
@@ -52,7 +52,7 @@ export default function DesignConceptPage() {
           {/* 01 Summary */}
           <section
             id="executive-summary"
-            className="scroll-mt-32 max-w-7xl mx-auto px-4 sm:px-6 lg:pl-16 pt-12 pb-16"
+            className="scroll-mt-32 max-w-7xl mx-auto px-4 sm:px-6 lg:pl-12 pt-12 pb-16"
           >
             <SectionHeader
               number="01"
@@ -99,7 +99,7 @@ export default function DesignConceptPage() {
           {/* 02 Moodboards */}
           <section
             id="moodboards"
-            className="scroll-mt-32 max-w-7xl mx-auto px-4 sm:px-6 lg:pl-16 pt-12 pb-16"
+            className="scroll-mt-32 max-w-7xl mx-auto px-4 sm:px-6 lg:pl-12 pt-12 pb-16"
           >
             <SectionHeader
               number="02"
@@ -131,7 +131,7 @@ export default function DesignConceptPage() {
           {/* 03 Decision Detail */}
           <section
             id="decision-detail"
-            className="scroll-mt-32 max-w-7xl mx-auto px-4 sm:px-6 lg:pl-16 pt-12 pb-16"
+            className="scroll-mt-32 max-w-7xl mx-auto px-4 sm:px-6 lg:pl-12 pt-12 pb-16"
           >
             <SectionHeader
               number="03"
