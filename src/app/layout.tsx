@@ -16,14 +16,16 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 export const metadata: Metadata = {
   title: "Rêvy — Design, made smarter",
   description: "Discover your French-California interior StyleDNA.",
   icons: {
     icon: [
-      { url: "/icon.png", type: "image/png" },
+      { url: `${basePath}/icon.png`, type: "image/png", sizes: "32x32" },
     ],
-    shortcut: "/icon.png",
+    shortcut: `${basePath}/icon.png`,
   },
 };
 
