@@ -56,7 +56,7 @@ export default function SourceListPage() {
     <ProjectRequiredGuard>
     <main className="min-h-screen bg-[var(--background)]">
       <header className="border-b border-black/10 bg-white/60 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:pl-12 py-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:pl-6 py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug text-black">
@@ -84,7 +84,7 @@ export default function SourceListPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:pl-12 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:pl-6 py-6 space-y-6">
         {!designsCreated && (
           <div className="mx-auto max-w-7xl">
             <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900">
