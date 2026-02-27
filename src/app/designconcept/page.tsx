@@ -77,14 +77,9 @@ export default function DesignConceptPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex items-center gap-3">
             <StudioLogo className="text-black/50" />
-            <div className="flex items-baseline gap-3">
-              <h1 className="font-[var(--font-playfair)] text-2xl font-bold tracking-tight text-black">
-                Design Concept Brief
-              </h1>
-              <span className="text-xs text-black/50 tracking-wide uppercase hidden sm:inline">
-                Rêvy Studio
-              </span>
-            </div>
+            <h1 className="font-[var(--font-playfair)] text-2xl font-bold tracking-tight text-black">
+              Design Concept Brief
+            </h1>
           </div>
           <p className="text-sm text-black/60 mt-1">
             Executive summary · Moodboard · Decision detail
@@ -107,15 +102,7 @@ export default function DesignConceptPage() {
             padding: 0,
           }}
         >
-          <div className="px-6 sm:px-10 pt-8 sm:pt-10 pb-6 border-b border-black/10">
-            <h3 className="font-[var(--font-playfair)] text-xl sm:text-2xl font-semibold text-black tracking-tight">
-              Design Concept Detail
-            </h3>
-            <p className="text-sm text-black/60 mt-1">
-              A summary of the design rationale behind every selection.
-            </p>
-          </div>
-          <div className="flex-1 grid grid-cols-2 gap-0">
+          <div className="flex-1 grid grid-cols-2 gap-0 pt-8 sm:pt-10 pb-8 sm:pb-10">
             {executiveSummary.blocks.map((block, i) => {
               const isTop = i < 2;
               const isLeft = i % 2 === 0;
@@ -166,19 +153,19 @@ export default function DesignConceptPage() {
               <MoodboardCanvasView
                 layout={layout}
                 paletteColors={moodboard.paletteStripColors}
-                conceptLabel={(layout.displayName ?? layout.name) + " — " + moodboard.conceptLabel}
+                conceptLabel={layout.displayName ?? layout.name}
               />
             );
           })()}
         </div>
       </section>
 
-      {/* ─── 03 Decision Detail (Style + Functional only; no Technical) ─── */}
+      {/* ─── 03 Decision Detail (Style + Scope) ─── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-16">
         <SectionHeader
           number="03"
           title="Decision Detail"
-          subtitle="Selection reasoning — Style and Functional logic for every material slot."
+          subtitle="Selection reasoning — Style and Scope logic for every material choice."
         />
         <div
           className="w-full max-w-[1000px] mx-auto overflow-hidden"
@@ -186,7 +173,7 @@ export default function DesignConceptPage() {
         >
           <div className="px-6 sm:px-8 py-5 border-b border-black/10">
             <h4 className="font-[var(--font-playfair)] text-lg font-semibold text-black">
-              Material slots
+              {getRoomLayout(selectedRoomId)?.displayName ?? getRoomLayout(selectedRoomId)?.name ?? "Material slots"}
             </h4>
           </div>
           <div className="overflow-x-auto">
@@ -225,15 +212,15 @@ export default function DesignConceptPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex flex-col gap-2">
-                        <div className="flex items-start gap-2">
-                          <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-amber-100/80 text-amber-900">
+                        <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                          <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-amber-100/80 text-amber-900 w-[4.5rem] text-center">
                             Style
                           </span>
                           <span className="text-sm leading-snug text-black">{row.styleReasoning}</span>
                         </div>
-                        <div className="flex items-start gap-2">
-                          <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-slate-100 text-slate-700">
-                            Functional
+                        <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                          <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-slate-100 text-slate-700 w-[4.5rem] text-center">
+                            Scope
                           </span>
                           <span className="text-sm leading-snug text-black">{row.functionalReasoning}</span>
                         </div>
@@ -247,9 +234,6 @@ export default function DesignConceptPage() {
         </div>
       </section>
 
-      <footer className="text-center text-xs text-black/40 pb-8">
-        Prepared for export by the Studio Coordinator Agent. No slot editor — documentation view only.
-      </footer>
     </main>
   );
 }
