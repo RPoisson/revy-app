@@ -20,7 +20,9 @@ export const metadata: Metadata = {
   title: "Rêvy — Design, made smarter",
   description: "Discover your French-California interior StyleDNA.",
   icons: {
-    icon: "/icon.png",
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+    ],
     shortcut: "/icon.png",
   },
 };
