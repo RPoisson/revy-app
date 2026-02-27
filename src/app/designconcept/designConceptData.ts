@@ -37,7 +37,10 @@ export type MaterialDecisionRow = {
   description: string;
   /** Style logic (Creative Director) */
   styleReasoning: string;
-  /** Scope/budget/functional (Project Manager); Technical folded in here for now */
+  /**
+   * Scope column in Decision Details table. Studio Coordinator should set this from the
+   * PM agent's auditedMaterials[].scopeReasoning (human-readable only; no rule IDs).
+   */
   functionalReasoning: string;
 };
 

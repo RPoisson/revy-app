@@ -343,6 +343,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
   //          HIDES when scope is light_refresh (not used in quiz; scope_level is "refresh") or no demo-heavy rooms selected.
   // Scenario where NONE trigger: not living in home + comfortable budget + finish not builder_plus + rooms only e.g. living/dining (no kitchen/baths/whole_home).
   // When no rules pass: Recommendations section is hidden (no fallback; rules are not shown).
+  // Recommendations: BU-01/02/03 (Budget) + FS-01 (Feasibility when living in home or unsure)
   const revyRules = (() => {
     const base: RevyRule[] = [
       ...asArray(FS_01),
