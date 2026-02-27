@@ -18,7 +18,7 @@ export function ProjectRequiredEmpty({ variant = "plan" }: { variant?: ProjectRe
             {title}
           </h1>
           <p className="text-sm text-amber-900/90 leading-relaxed">
-            Come back once you've completed the Project Quiz. The Quiz will guide you to define your project's scope, budget, and taste. Once completed, your Project Plan will appear here.
+            Come back once you&apos;ve created a project and started the design intake. You can start from the Quiz to define scope, budget, and taste—then your Project Plan, Design Details, and Source List will appear here.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
