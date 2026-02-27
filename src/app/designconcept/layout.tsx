@@ -18,7 +18,7 @@ export default function DesignConceptLayout({
     <ProjectRequiredGuard emptyVariant="plan">
     <div className="min-h-screen bg-[var(--background)]" data-design-concept-detail>
       <div className="border-b border-black/10 bg-white/60 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:pl-16 py-4">
           <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug text-black mb-3">
             Design Details
           </h1>
