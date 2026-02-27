@@ -12,8 +12,8 @@ type StudioLogoProps = {
 export function StudioLogo({ size = "default", className = "" }: StudioLogoProps) {
   const sizeClasses =
     size === "sm"
-      ? "h-6 w-auto sm:h-8"
-      : "h-8 w-auto sm:h-10 md:h-12 lg:h-14";
+      ? "h-5 w-auto sm:h-6"
+      : "h-6 w-auto sm:h-7 md:h-8";
 
   return (
     <Image
