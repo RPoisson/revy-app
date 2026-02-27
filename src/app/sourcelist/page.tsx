@@ -59,12 +59,12 @@ export default function SourceListPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:pl-16 py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-black/50 mb-1">
-                Project Procurement
-              </p>
               <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug text-black">
                 Source List
               </h1>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-black/50 mt-1">
+                Project Procurement
+              </p>
             </div>
             {designsCreated && (
               <div className="flex items-center gap-3">
