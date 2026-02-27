@@ -25,7 +25,7 @@ export function SectionHeader({
           style={{ transform: "translateY(-4px)" }}
         />
       </div>
-      <h2 className="font-[var(--font-playfair)] text-2xl md:text-3xl font-semibold text-black tracking-tight mt-2">
+      <h2 className="font-[var(--font-playfair)] text-2xl md:text-3xl font-normal text-black tracking-tight mt-2">
         {title}
       </h2>
       {subtitle && (

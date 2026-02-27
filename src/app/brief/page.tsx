@@ -392,11 +392,11 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
     {hasAnyAnswers && (
     <main className="min-h-screen flex justify-center px-4 pt-8 pb-24 md:py-12">
       <div className="w-full max-w-2xl flex flex-col gap-8">
-        <header className="space-y-2">
-          <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug">
+        <header>
+          <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug text-black">
             Project Plan
           </h1>
-          <p className="text-sm text-black/70 leading-relaxed">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-black/50 mt-1">
             Built from your scope, investment range, constraints, and taste.
           </p>
         </header>
