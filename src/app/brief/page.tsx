@@ -8,7 +8,7 @@ import {
   getAnswers,
   QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
-import { setDesignsCreated } from "@/lib/designsCreatedStore";
+import { getDesignsCreated, setDesignsCreated } from "@/lib/designsCreatedStore";
 import { useProjects } from "@/context/ProjectContext";
 import { ProjectRequiredGuard } from "@/components/ProjectRequiredGuard";
 import { scoreQuiz } from "@/app/scoring";
@@ -228,9 +228,18 @@ export default function BriefPage() {
   const { currentProjectId } = useProjects();
 
   const [answers, setAnswers] = useState<QuizAnswers | null>(null);
+  const [hasDesigns, setHasDesigns] = useState(false);
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
+  }, [currentProjectId]);
+
+  useEffect(() => {
+    if (!currentProjectId) {
+      setHasDesigns(false);
+      return;
+    }
+    setHasDesigns(getDesignsCreated(currentProjectId));
   }, [currentProjectId]);
 
   const scopeIndex = useMemo(() => buildLabelIndex(SCOPE_QUESTIONS), []);
@@ -596,18 +605,29 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
             >
               Save / print
             </button>
-            <button
-              onClick={() => {
-                if (currentProjectId) {
+            {hasDesigns ? (
+              <button
+                onClick={() => router.push("/designconcept")}
+                className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
+              >
+                See Designs
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  if (!currentProjectId) return;
+                  const confirmed = window.confirm(
+                    "Are you sure? This step locks in your project plan and moves to the design phase. You will not be able to edit your project plan once you do this."
+                  );
+                  if (!confirmed) return;
                   setDesignsCreated(currentProjectId, true);
                   router.push("/designconcept");
-                }
-              }}
-              title="Are you sure? This step locks in your project plan and moves to the design phase. You will not be able to edit your project plan once you do this."
-              className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
-            >
-              Create Designs
-            </button>
+                }}
+                className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
+              >
+                Create Designs
+              </button>
+            )}
           </div>
         </section>
       </div>
