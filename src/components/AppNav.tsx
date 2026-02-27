@@ -76,7 +76,7 @@ export function AppNav() {
       {/* Top white space — marketing style like studiorevy.com */}
       <div className="h-4 md:h-6" aria-hidden />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between gap-4 py-3 md:py-4">
           {/* Logo — left justified */}
           <Link href="/" className="flex-shrink-0" aria-label="Rêvy home">
