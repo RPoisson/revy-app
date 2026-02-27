@@ -413,7 +413,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
             <StudioLogo className="text-black/50" />
           </div>
           <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug">
-            Project Design Summary
+            Project Brief
           </h1>
           <p className="text-sm text-black/70 leading-relaxed">
             Built from your scope, investment range, constraints, and taste.

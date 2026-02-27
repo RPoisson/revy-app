@@ -365,7 +365,7 @@ export default function QuizPage() {
                   disabled={!canGoNext}
                   className="w-full md:w-auto text-xs md:text-sm px-8 py-2 rounded-full bg-black text-[#F8F5EE] disabled:opacity-40 hover:bg-black/90 transition"
                 >
-                  {isLast ? "Let’s design your project" : "Next"}
+                  {isLast ? "Let’s Create your Project" : "Next"}
                 </button>
               </div>
             </div>
