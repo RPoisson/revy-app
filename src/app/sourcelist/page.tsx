@@ -9,7 +9,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { StudioLogo } from "@/components/StudioLogo";
+import { ProjectRequiredGuard } from "@/components/ProjectRequiredGuard";
 import {
   getPlaceholderSourceList,
   type SourceItem,
@@ -48,13 +48,12 @@ export default function SourceListPage() {
   };
 
   return (
+    <ProjectRequiredGuard>
     <main className="min-h-screen bg-[var(--background)]">
       <header className="border-b border-black/10 bg-white/60 backdrop-blur-sm sticky top-0 z-10">
         <div className="mx-auto max-w-[1600px] px-4 py-5 md:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex items-center gap-3">
-              <StudioLogo className="text-black/50" />
-              <div>
+            <div>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-black/50 mb-1">
                   Project Procurement
                 </p>
@@ -135,5 +134,6 @@ export default function SourceListPage() {
         </div>
       </div>
     </main>
+    </ProjectRequiredGuard>
   );
 }

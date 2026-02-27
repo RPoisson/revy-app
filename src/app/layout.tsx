@@ -3,6 +3,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Playfair_Display, Inter } from "next/font/google";
+import { ProjectProvider } from "@/context/ProjectContext";
+import { AppNav } from "@/components/AppNav";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -15,11 +17,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Rêvy Style Quiz",
+  title: "Rêvy — Design, made smarter",
   description: "Discover your French-California interior StyleDNA.",
 };
 
-// New: Viewport settings must be exported separately now
 export const viewport: Viewport = {
   colorScheme: "light",
   themeColor: "#ffffff",
@@ -36,7 +37,12 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable}`}
     >
       <body>
-        <div className="min-h-screen flex flex-col">{children}</div>
+        <ProjectProvider>
+          <div className="min-h-screen flex flex-col">
+            <AppNav />
+            <div className="flex-1">{children}</div>
+          </div>
+        </ProjectProvider>
       </body>
     </html>
   );

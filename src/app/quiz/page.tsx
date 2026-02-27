@@ -13,7 +13,7 @@ import {
   clearAnswers,
   QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
-import { StudioLogo } from "@/components/StudioLogo";
+import { useProjects } from "@/context/ProjectContext";
 
 function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
   let changed = false;
@@ -58,8 +58,8 @@ function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
 
 export default function QuizPage() {
   const router = useRouter();
+  const { currentProjectId } = useProjects();
 
-  // ✅ Hydration guard
   const [mounted, setMounted] = useState(false);
 
   const [step, setStep] = useState(0);
@@ -78,18 +78,16 @@ export default function QuizPage() {
   const safeProgress = total > 0 ? ((step + 1) / total) * 100 : 0;
   const isLast = step === total - 1;
 
-  // ✅ Load answers only after mount (client-only)
   useEffect(() => {
     setMounted(true);
-    const stored = getAnswers();
+    const stored = getAnswers(currentProjectId ?? undefined);
     setAnswers(stored);
-  }, []);
+  }, [currentProjectId]);
 
-  // ✅ Save only after mount (prevents server/client mismatch + avoids writing empty state)
   useEffect(() => {
     if (!mounted) return;
-    saveAnswers(answers);
-  }, [answers, mounted]);
+    saveAnswers(answers, currentProjectId ?? undefined);
+  }, [answers, mounted, currentProjectId]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -137,7 +135,7 @@ export default function QuizPage() {
   }
 
   function handleExit() {
-    clearAnswers();
+    clearAnswers(currentProjectId ?? undefined);
     router.push("/");
   }
 
@@ -152,9 +150,6 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
           <p className="text-sm text-black/70">Loading your project…</p>
         </div>
       </main>
@@ -165,9 +160,6 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             Something went wrong
           </h1>
@@ -192,10 +184,6 @@ export default function QuizPage() {
     return (
       <main className="min-h-screen flex justify-center px-4 pt-6 pb-24 md:py-10">
         <div className="w-full max-w-xl flex flex-col gap-6">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
-
           <h1 className="font-[var(--font-playfair)] text-xl md:text-2xl leading-snug">
             What&apos;s your Style?
           </h1>
@@ -231,7 +219,7 @@ export default function QuizPage() {
 
           <button
             onClick={() => {
-              clearAnswers();
+              clearAnswers(currentProjectId ?? undefined);
               router.push("/");
             }}
             className="mt-2 inline-flex items-center justify-center px-6 py-3 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide hover:bg-black/90 transition"

@@ -9,6 +9,8 @@ import {
   clearAnswers,
   QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
+import { useProjects } from "@/context/ProjectContext";
+import { ProjectRequiredGuard } from "@/components/ProjectRequiredGuard";
 import { scoreQuiz } from "@/app/scoring";
 import { generateResultText } from "@/app/resultText";
 
@@ -37,7 +39,6 @@ import {
   computeComplexityPoints,
   getBudgetCapacityPoints,
 } from "@/app/brief/budgetHeuristics";
-import { StudioLogo } from "@/components/StudioLogo";
 
 function first(answers: QuizAnswers, key: string): string | undefined {
   const v = answers[key];
@@ -224,13 +225,13 @@ function evalSimpleTrigger(expr: string, ctx: Record<string, any>): boolean {
 
 export default function BriefPage() {
   const router = useRouter();
+  const { currentProjectId } = useProjects();
 
-  // IMPORTANT: null until client loads answers (prevents hydration mismatch)
   const [answers, setAnswers] = useState<QuizAnswers | null>(null);
 
   useEffect(() => {
-    setAnswers(getAnswers());
-  }, []);
+    setAnswers(getAnswers(currentProjectId ?? undefined));
+  }, [currentProjectId]);
 
   const scopeIndex = useMemo(() => buildLabelIndex(SCOPE_QUESTIONS), []);
   const budgetIndex = useMemo(() => buildLabelIndex(BUDGET_QUESTIONS), []);
@@ -243,9 +244,6 @@ export default function BriefPage() {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             Preparing your brief…
           </h1>
@@ -258,31 +256,6 @@ export default function BriefPage() {
   }
 
   const hasAnyAnswers = Object.keys(answers).length > 0;
-
-  // 2) If still empty after loading, show “no project found”
-  if (!hasAnyAnswers) {
-    return (
-      <main className="min-h-screen flex justify-center items-center px-4 py-10">
-        <div className="w-full max-w-md text-center space-y-4">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
-          <h1 className="font-[var(--font-playfair)] text-xl">
-            No project found
-          </h1>
-          <p className="text-sm text-black/70 leading-relaxed">
-            Start the quiz to generate your Design Direction Summary.
-          </p>
-          <button
-            onClick={() => router.push("/")}
-            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide hover:bg-black/90 transition"
-          >
-            Start a project
-          </button>
-        </div>
-      </main>
-    );
-  }
 
   // Exterior
   const exteriorId = first(answers, "home_exterior_style");
@@ -406,12 +379,11 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
   })();
 
   return (
+    <ProjectRequiredGuard>
+    {hasAnyAnswers && (
     <main className="min-h-screen flex justify-center px-4 pt-8 pb-24 md:py-12">
       <div className="w-full max-w-2xl flex flex-col gap-8">
         <header className="space-y-2">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
           <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug">
             Project Brief
           </h1>
@@ -620,7 +592,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
           <div className="flex gap-3">
             <button
               onClick={() => {
-                clearAnswers();
+                clearAnswers(currentProjectId ?? undefined);
                 router.push("/");
               }}
               className="text-xs md:text-sm px-5 py-2 rounded-full border border-black/20 bg-transparent hover:bg-black/5 transition"
@@ -638,5 +610,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
         </section>
       </div>
     </main>
+    )}
+    </ProjectRequiredGuard>
   );
 }

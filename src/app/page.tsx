@@ -1,6 +1,5 @@
 // src/app/page.tsx
 import Link from "next/link";
-import { StudioLogo } from "@/components/StudioLogo";
 
 export default function QuizIntroPage() {
   return (
@@ -8,10 +7,6 @@ export default function QuizIntroPage() {
       <div className="w-full max-w-xl space-y-8">
         {/* Context */}
         <div className="text-center space-y-3">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
-
           <h1 className="font-[var(--font-playfair)] text-3xl leading-tight">
             Let’s get clarity on your project, together.
           </h1>
@@ -81,6 +76,10 @@ export default function QuizIntroPage() {
           <p className="text-xs text-black/50">
             Most people complete this in under 7 minutes
           </p>
+
+          <Link href="/account" className="text-xs text-black/50 hover:text-black/70 underline">
+            Create or switch projects from Account
+          </Link>
         </div>
       </div>
     </main>

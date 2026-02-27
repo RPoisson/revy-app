@@ -12,7 +12,8 @@ import {
   saveAnswers,
   type QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
-import { StudioLogo } from "@/components/StudioLogo";
+import Link from "next/link";
+import { useProjects } from "@/context/ProjectContext";
 
 function qtyKey(optionId: string) {
   return `rooms_qty_${optionId}`;
@@ -30,9 +31,10 @@ const COUNTABLE_ROOM_IDS = new Set<string>([
 
 export default function ScopePage() {
   const router = useRouter();
+  const { currentProjectId } = useProjects();
 
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<QuizAnswers>(() => getAnswers());
+  const [answers, setAnswers] = useState<QuizAnswers>(() => getAnswers(currentProjectId ?? undefined));
 
   const total = SCOPE_QUESTIONS.length;
   const question = SCOPE_QUESTIONS[step];
@@ -41,8 +43,12 @@ export default function ScopePage() {
   const isLast = step === total - 1;
 
   useEffect(() => {
-    saveAnswers(answers);
-  }, [answers]);
+    setAnswers(getAnswers(currentProjectId ?? undefined));
+  }, [currentProjectId]);
+
+  useEffect(() => {
+    saveAnswers(answers, currentProjectId ?? undefined);
+  }, [answers, currentProjectId]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -101,17 +107,35 @@ export default function ScopePage() {
   }
 
   function handleExit() {
-    clearAnswers();
+    clearAnswers(currentProjectId ?? undefined);
     router.push("/");
+  }
+
+  if (!currentProjectId) {
+    return (
+      <main className="min-h-screen flex justify-center items-center px-4 py-10">
+        <div className="w-full max-w-md text-center space-y-4">
+          <h1 className="font-[var(--font-playfair)] text-xl">
+            Select a project first
+          </h1>
+          <p className="text-sm text-black/70 leading-relaxed">
+            Create or select a project from your Account so your quiz answers are saved to the right place.
+          </p>
+          <Link
+            href="/account"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide hover:bg-black/90 transition"
+          >
+            Account & projects
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   if (!question) {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
-          <div className="flex justify-start">
-            <StudioLogo className="text-black/50" />
-          </div>
           <h1 className="font-[var(--font-playfair)] text-xl">
             Something went wrong
           </h1>
