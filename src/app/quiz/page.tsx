@@ -145,6 +145,11 @@ export default function QuizPage() {
     router.push("/");
   }
 
+  function handleSaveForLater() {
+    // Answers are already persisted via saveAnswers; just return to app without clearing.
+    router.push("/");
+  }
+
   const canGoNext = useMemo(() => {
     if (!question) return false;
     if (locked) return true;
@@ -309,6 +314,15 @@ export default function QuizPage() {
                 >
                   Exit
                 </button>
+                {isLast && (
+                  <button
+                    type="button"
+                    onClick={handleSaveForLater}
+                    className="w-full md:w-auto text-xs md:text-sm px-4 py-2 rounded-full border border-black/20 bg-transparent hover:bg-black/5 transition"
+                  >
+                    Save for later
+                  </button>
+                )}
                 <button
                   onClick={handleBack}
                   className="w-full md:w-auto text-xs md:text-sm px-4 py-2 rounded-full border border-black/20 bg-transparent hover:bg-black/5 transition"

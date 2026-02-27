@@ -62,22 +62,24 @@ export default function SourceListPage() {
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-black/50 mb-1">
                 Project Procurement
               </p>
-              <h1 className="font-[var(--font-playfair)] text-2xl font-bold text-black md:text-3xl">
+              <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug text-black">
                 Source List
               </h1>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-black/20 bg-white text-black text-sm font-medium hover:bg-black/5 transition-colors"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export CSV
-              </button>
-            </div>
+            {designsCreated && (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-black/20 bg-white text-black text-sm font-medium hover:bg-black/5 transition-colors"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Export CSV
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
