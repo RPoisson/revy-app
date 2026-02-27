@@ -14,6 +14,7 @@ import {
 } from "@/app/quiz/lib/answersStore";
 import Link from "next/link";
 import { useProjects } from "@/context/ProjectContext";
+import { getDesignsCreated } from "@/lib/designsCreatedStore";
 
 function qtyKey(optionId: string) {
   return `rooms_qty_${optionId}`;
@@ -35,6 +36,7 @@ export default function ScopePage() {
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(() => getAnswers(currentProjectId ?? undefined));
+   const [locked, setLocked] = useState(false);
 
   const total = SCOPE_QUESTIONS.length;
   const question = SCOPE_QUESTIONS[step];
@@ -44,6 +46,7 @@ export default function ScopePage() {
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
+    setLocked(getDesignsCreated(currentProjectId ?? undefined));
   }, [currentProjectId]);
 
   useEffect(() => {
@@ -56,6 +59,7 @@ export default function ScopePage() {
 
   const canGoNext = useMemo(() => {
     if (!question) return false;
+    if (locked) return true;
     const current = answers[question.id] ?? [];
     const baseOk = question.required ? current.length > 0 : true;
 
@@ -70,9 +74,10 @@ export default function ScopePage() {
     }
 
     return baseOk;
-  }, [answers, question]);
+  }, [answers, question, locked]);
 
   function toggleOption(q: Question, optionId: string) {
+    if (locked) return;
     setAnswers((prev) => {
       const current = prev[q.id] ?? [];
 
@@ -107,7 +112,9 @@ export default function ScopePage() {
   }
 
   function handleExit() {
-    clearAnswers(currentProjectId ?? undefined);
+    if (!locked) {
+      clearAnswers(currentProjectId ?? undefined);
+    }
     router.push("/");
   }
 
@@ -200,6 +207,7 @@ export default function ScopePage() {
             onSelect={toggleOption}
             answers={answers}
             onAnswersChange={setAnswers} // ✅ now supported by component
+            readOnly={locked}
           />
         </section>
 

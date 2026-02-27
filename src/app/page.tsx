@@ -8,17 +8,27 @@ import { useProjects } from "@/context/ProjectContext";
 export default function QuizIntroPage() {
   const router = useRouter();
   const { projects, setCurrentProjectId } = useProjects();
+  const hasProjects = projects.length > 0;
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-neutral-900 px-4 py-6 md:py-10">
       <div className="max-w-5xl mx-auto">
         <header className="text-center space-y-3 mb-8">
-          <h1 className="font-[var(--font-playfair)] text-3xl md:text-4xl leading-tight">
-            Let’s get clarity on your project, together.
-          </h1>
-          <p className="text-sm text-black/70 leading-relaxed max-w-2xl mx-auto">
-            Choose a project to continue the quiz, or create a new one.
-          </p>
+          {!hasProjects && (
+            <>
+              <h1 className="font-[var(--font-playfair)] text-3xl md:text-4xl leading-tight">
+                Let’s get clarity on your project, together.
+              </h1>
+              <p className="text-sm text-black/70 leading-relaxed max-w-2xl mx-auto">
+                Choose a project to continue the quiz, or create a new one.
+              </p>
+            </>
+          )}
+          {hasProjects && (
+            <p className="text-sm text-black/70 leading-relaxed max-w-2xl mx-auto">
+              Choose a project to view the quiz, or create a new one.
+            </p>
+          )}
         </header>
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

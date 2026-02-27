@@ -37,12 +37,14 @@ export default function QuestionOptions({
   onSelect,
   answers,
   onAnswersChange,
+  readOnly = false,
 }: {
   question: Question;
   selected: string[];
   onSelect: (q: Question, optionId: string) => void;
   answers: QuizAnswers;
   onAnswersChange?: React.Dispatch<React.SetStateAction<QuizAnswers>>;
+  readOnly?: boolean;
 }) {
   const isExterior = question.id === "home_exterior_style";
 
@@ -87,7 +89,7 @@ export default function QuestionOptions({
   };
 
   const handleClick = (opt: Option) => {
-    if (isDisabled(opt)) return;
+    if (readOnly || isDisabled(opt)) return;
     onSelect(question, opt.id);
   };
 
@@ -114,7 +116,7 @@ export default function QuestionOptions({
     return typeof v === "string" ? v : "";
   };
   const setQty = (optionId: string, value: string) => {
-    if (!onAnswersChange) return;
+    if (!onAnswersChange || readOnly) return;
     onAnswersChange((prev) => {
       const key = qtyKey(optionId);
       if (!value) {
@@ -173,8 +175,8 @@ export default function QuestionOptions({
                 opt={opt}
                 isExterior={false}
                 isActive={selected.includes(opt.id)}
-                disabled={false}
-                onClick={() => handleClick(opt)}
+                disabled={readOnly}
+                onClick={() => (!readOnly ? handleClick(opt) : undefined)}
                 showReason={false}
                 reason=""
                 allowMultiple={question.allowMultiple}
@@ -245,7 +247,7 @@ export default function QuestionOptions({
     <div ref={tooltipContainerRef} className={baseLayoutClasses}>
       {optionsToRender.map((opt: Option) => {
         const isActive = selected.includes(opt.id);
-        const disabled = isDisabled(opt);
+        const disabled = readOnly || isDisabled(opt);
 
         const needsQty =
           showInlineQty && COUNTABLE_ROOM_IDS.has(opt.id) && isActive;
@@ -257,9 +259,9 @@ export default function QuestionOptions({
             isExterior={isExterior}
             isActive={isActive}
             disabled={disabled}
-            onClick={() => handleClick(opt)}
-            showReason={disabled}
-            reason={disabled ? getDisabledReason(opt) : ""}
+            onClick={() => (!readOnly ? handleClick(opt) : undefined)}
+            showReason={disabled && !readOnly}
+            reason={!readOnly && disabled ? getDisabledReason(opt) : ""}
             allowMultiple={question.allowMultiple}
             questionId={question.id}
             showQty={needsQty}

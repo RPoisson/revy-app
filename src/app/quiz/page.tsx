@@ -14,6 +14,7 @@ import {
   QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
+import { getDesignsCreated } from "@/lib/designsCreatedStore";
 
 function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
   let changed = false;
@@ -68,6 +69,7 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<QuizAnswers>({});
 
   const [completed, setCompleted] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   // Popover state for final CTA info (mobile + desktop tap)
   const [infoOpen, setInfoOpen] = useState(false);
@@ -82,12 +84,13 @@ export default function QuizPage() {
     setMounted(true);
     const stored = getAnswers(currentProjectId ?? undefined);
     setAnswers(stored);
+    setLocked(getDesignsCreated(currentProjectId ?? undefined));
   }, [currentProjectId]);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || locked) return;
     saveAnswers(answers, currentProjectId ?? undefined);
-  }, [answers, mounted, currentProjectId]);
+  }, [answers, mounted, currentProjectId, locked]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -100,6 +103,7 @@ export default function QuizPage() {
   }, [step]);
 
   function toggleOption(q: Question, optionId: string) {
+    if (locked) return;
     setAnswers((prev) => {
       const current = prev[q.id] ?? [];
       let updated: QuizAnswers;
@@ -135,15 +139,18 @@ export default function QuizPage() {
   }
 
   function handleExit() {
-    clearAnswers(currentProjectId ?? undefined);
+    if (!locked) {
+      clearAnswers(currentProjectId ?? undefined);
+    }
     router.push("/");
   }
 
   const canGoNext = useMemo(() => {
     if (!question) return false;
+    if (locked) return true;
     const current = answers[question.id] ?? [];
     return question.required ? current.length > 0 : true;
-  }, [answers, question]);
+  }, [answers, question, locked]);
 
   // ✅ Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
@@ -283,6 +290,7 @@ export default function QuizPage() {
             selected={answers[question!.id] ?? []}
             onSelect={toggleOption}
             answers={answers}
+            readOnly={locked}
           />
         </section>
 

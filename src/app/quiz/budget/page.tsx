@@ -9,6 +9,7 @@ import QuestionOptions from "@/app/quiz/components/QuestionOptions";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
 import { getAnswers, saveAnswers, clearAnswers, QuizAnswers } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
+import { getDesignsCreated } from "@/lib/designsCreatedStore";
 
 export default function BudgetPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function BudgetPage() {
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(() => getAnswers(currentProjectId ?? undefined));
+  const [locked, setLocked] = useState(false);
 
   const total = BUDGET_QUESTIONS.length;
   const question = BUDGET_QUESTIONS[step];
@@ -25,6 +27,7 @@ export default function BudgetPage() {
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
+    setLocked(getDesignsCreated(currentProjectId ?? undefined));
   }, [currentProjectId]);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export default function BudgetPage() {
   }, [step]);
 
   function toggleOption(q: Question, optionId: string) {
+    if (locked) return;
     setAnswers((prev) => {
       const current = prev[q.id] ?? [];
       if (q.allowMultiple) {
@@ -61,15 +65,18 @@ export default function BudgetPage() {
   }
 
   function handleExit() {
-    clearAnswers(currentProjectId ?? undefined);
+    if (!locked) {
+      clearAnswers(currentProjectId ?? undefined);
+    }
     router.push("/");
   }
 
   const canGoNext = useMemo(() => {
     if (!question) return false;
+    if (locked) return true;
     const current = answers[question.id] ?? [];
     return question.required ? current.length > 0 : true;
-  }, [answers, question]);
+  }, [answers, question, locked]);
 
   if (!question) {
     return (
@@ -137,6 +144,7 @@ export default function BudgetPage() {
             selected={answers[question.id] ?? []}
             onSelect={toggleOption}
             answers={answers}
+            readOnly={locked}
           />
         </section>
 

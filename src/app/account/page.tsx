@@ -5,6 +5,9 @@ import { useCallback, useState } from "react";
 import { useProjects } from "@/context/ProjectContext";
 import { getAnswers } from "@/app/quiz/lib/answersStore";
 import { getDesignsCreated } from "@/lib/designsCreatedStore";
+import { SCOPE_QUESTIONS } from "@/app/quiz/scope/questions";
+import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
+import { QUESTIONS as TASTE_QUESTIONS } from "@/questions";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -14,13 +17,24 @@ export default function AccountPage() {
 
   const getProjectStageLabel = useCallback((projectId: string) => {
     const answers = getAnswers(projectId);
-    const hasPlan = Object.keys(answers).length > 0;
-    if (!hasPlan) return "Draft — quiz not completed";
+    const hasAnyAnswers = Object.keys(answers).length > 0;
+    if (!hasAnyAnswers) return "Draft — quiz not started";
+
+    // Quiz completion = all required questions across Scope, Budget, and Taste have answers
+    const allQuestions = [...SCOPE_QUESTIONS, ...BUDGET_QUESTIONS, ...TASTE_QUESTIONS];
+    const requiredQuestions = allQuestions.filter((q) => q.required);
+    const hasCompletedQuiz = requiredQuestions.every((q) => {
+      const val = answers[q.id] ?? [];
+      return Array.isArray(val) && val.length > 0;
+    });
 
     const hasDesigns = getDesignsCreated(projectId);
-    if (!hasDesigns) return "Planning — project plan created";
+    if (hasDesigns) return "Designed — designs created";
 
-    return "Designed — designs created";
+    if (hasCompletedQuiz) return "Project Plan created — quiz complete";
+
+    return "In progress — quiz responses saved";
+
   }, []);
 
   const handleCreate = useCallback(() => {
