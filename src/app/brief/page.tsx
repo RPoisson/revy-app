@@ -603,6 +603,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
                   router.push("/designconcept");
                 }
               }}
+              title="Are you sure? This step locks in your project plan and moves to the design phase. You will not be able to edit your project plan once you do this."
               className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
             >
               Create Designs
