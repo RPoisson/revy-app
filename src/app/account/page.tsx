@@ -11,9 +11,10 @@ import { QUESTIONS as TASTE_QUESTIONS } from "@/questions";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { projects, currentProjectId, setCurrentProjectId, createProject } = useProjects();
+  const { projects, currentProjectId, setCurrentProjectId, createProject, updateProject, deleteProject } = useProjects();
   const [newProjectName, setNewProjectName] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const getProjectStageLabel = useCallback((projectId: string) => {
     const answers = getAnswers(projectId);
@@ -44,6 +45,48 @@ export default function AccountPage() {
     setShowCreate(false);
   }, [newProjectName, createProject]);
 
+  const handleArchive = useCallback(
+    (projectId: string) => {
+      updateProject(projectId, { status: "archived" });
+    },
+    [updateProject]
+  );
+
+  const handleUnarchive = useCallback(
+    (projectId: string) => {
+      updateProject(projectId, { status: "draft" });
+    },
+    [updateProject]
+  );
+
+  const handleDelete = useCallback(
+    (projectId: string, projectName: string) => {
+      const confirmed = window.confirm(
+        `Delete project “${projectName}”? This will permanently remove all associated data (quiz answers, designs, and plan) and cannot be undone.`
+      );
+      if (!confirmed) return;
+
+      // Remove stored quiz answers and design flags
+      try {
+        const { clearAnswers } = require("@/app/quiz/lib/answersStore") as typeof import("@/app/quiz/lib/answersStore");
+        const { setDesignsCreated } = require("@/lib/designsCreatedStore") as typeof import("@/lib/designsCreatedStore");
+        clearAnswers(projectId);
+        setDesignsCreated(projectId, false);
+      } catch {
+        // best-effort cleanup; ignore errors
+      }
+
+      deleteProject(projectId);
+      if (currentProjectId === projectId) {
+        setCurrentProjectId(null);
+      }
+    },
+    [currentProjectId, deleteProject, setCurrentProjectId]
+  );
+
+  const activeProjects = projects.filter((p) => p.status !== "archived");
+  const archivedProjects = projects.filter((p) => p.status === "archived");
+
   return (
     <main className="min-h-screen bg-[var(--background)]">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
@@ -65,26 +108,44 @@ export default function AccountPage() {
             Switch between projects or create a new one. Each project has its own quiz answers, plan, and design concept.
           </p>
 
-          {projects.length === 0 ? (
+          {activeProjects.length === 0 ? (
             <p className="text-sm text-black/50 italic">No projects yet. Create one to get started.</p>
           ) : (
             <ul className="space-y-2">
-              {projects.map((p) => (
+              {activeProjects.map((p) => (
                 <li key={p.id}>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentProjectId(p.id)}
-                    className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
-                      currentProjectId === p.id
-                        ? "border-black/20 bg-black/5 font-medium"
-                        : "border-black/10 hover:bg-black/[0.02]"
-                    }`}
-                  >
-                    <span className="text-black">{p.name}</span>
-                    <span className="block text-xs text-black/50 mt-0.5">
-                      {getProjectStageLabel(p.id)}
-                    </span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentProjectId(p.id)}
+                      className={`flex-1 text-left px-4 py-3 rounded-xl border transition-colors ${
+                        currentProjectId === p.id
+                          ? "border-black/20 bg-black/5 font-medium"
+                          : "border-black/10 hover:bg-black/[0.02]"
+                      }`}
+                    >
+                      <span className="text-black">{p.name}</span>
+                      <span className="block text-xs text-black/50 mt-0.5">
+                        {getProjectStageLabel(p.id)}
+                      </span>
+                    </button>
+                    <div className="flex flex-col gap-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleArchive(p.id)}
+                        className="px-3 py-1 rounded-full border border-black/15 text-black/70 hover:bg-black/5"
+                      >
+                        Archive
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(p.id, p.name)}
+                        className="px-3 py-1 rounded-full border border-red-200 text-red-700 hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -124,6 +185,60 @@ export default function AccountPage() {
             >
               + New project
             </button>
+          )}
+        </section>
+
+        {/* Archived projects */}
+        <section className="rounded-2xl border border-black/10 bg-white/60 p-6 mt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-black/50">
+              Archived projects
+            </h2>
+            {archivedProjects.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowArchived((v) => !v)}
+                className="text-xs font-medium text-black/60 hover:text-black"
+              >
+                {showArchived ? "Hide" : "Show"}
+              </button>
+            )}
+          </div>
+          {archivedProjects.length === 0 ? (
+            <p className="text-sm text-black/50 italic">No archived projects.</p>
+          ) : (
+            showArchived && (
+              <ul className="space-y-2">
+                {archivedProjects.map((p) => (
+                  <li key={p.id}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 px-4 py-3 rounded-xl border border-black/10 bg-black/[0.01]">
+                        <span className="text-black">{p.name}</span>
+                        <span className="block text-xs text-black/50 mt-0.5">
+                          Archived — {getProjectStageLabel(p.id)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => handleUnarchive(p.id)}
+                          className="px-3 py-1 rounded-full border border-black/15 text-black/70 hover:bg-black/5"
+                        >
+                          Restore
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(p.id, p.name)}
+                          className="px-3 py-1 rounded-full border border-red-200 text-red-700 hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )
           )}
         </section>
 

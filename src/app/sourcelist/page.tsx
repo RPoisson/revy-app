@@ -9,7 +9,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ProjectRequiredGuard } from "@/components/ProjectRequiredGuard";
+import { useProjects } from "@/context/ProjectContext";
+import { getDesignsCreated } from "@/lib/designsCreatedStore";
 import {
   getPlaceholderSourceList,
   type SourceItem,
@@ -26,6 +29,8 @@ const formatCurrency = (n: number) =>
   }).format(n);
 
 export default function SourceListPage() {
+  const { currentProjectId } = useProjects();
+  const designsCreated = getDesignsCreated(currentProjectId);
   // Replace with API/DB fetch when ready; data can be built from design concept + DB specs
   const allItems: SourceItem[] = useMemo(() => getPlaceholderSourceList(), []);
 
@@ -78,59 +83,78 @@ export default function SourceListPage() {
       </header>
 
       <div className="mx-auto max-w-[1600px] px-4 py-6 md:px-8 space-y-6">
-        <SourceListExecutiveSummary />
-
-        {/* Room filter */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-black/50 mr-1">
-            Room:
-          </span>
-          <button
-            type="button"
-            onClick={() => setSelectedRoom(null)}
-            className={`h-7 px-3 rounded-md text-xs font-medium border transition-colors ${
-              selectedRoom === null
-                ? "bg-black text-white border-black"
-                : "bg-white border-black/20 text-black hover:bg-black/5"
-            }`}
-          >
-            All
-          </button>
-          {rooms.map((room) => (
-            <button
-              key={room}
-              type="button"
-              onClick={() => setSelectedRoom(room)}
-              className={`h-7 px-3 rounded-md text-xs font-medium border transition-colors ${
-                selectedRoom === room
-                  ? "bg-black text-white border-black"
-                  : "bg-white border-black/20 text-black hover:bg-black/5"
-              }`}
-            >
-              {room}
-            </button>
-          ))}
-        </div>
-
-        <SourceListTable items={filteredItems} />
-
-        <div className="flex items-center justify-between rounded-xl border border-black/10 bg-white px-6 py-4 shadow-[0_10px_24px_rgba(17,17,17,0.06)]">
-          <div className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-black/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span className="text-sm text-black/60">
-              {filteredItems.length} line items
-              {selectedRoom ? ` in ${selectedRoom}` : " across 3 phases"}
-            </span>
+        {!designsCreated && (
+          <div className="max-w-3xl">
+            <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900">
+              <p className="font-medium">No designs created yet</p>
+              <p className="mt-1 text-amber-800/90">
+                You have a project plan but haven&apos;t generated designs. Go to your{" "}
+                <Link href="/brief" className="underline font-medium hover:no-underline">
+                  Project Plan
+                </Link>{" "}
+                and click <strong>Create Designs</strong> to generate them.
+              </p>
+            </div>
           </div>
-          <div className="text-right">
-            <span className="text-xs text-black/50 block">Total</span>
-            <p className="font-[var(--font-playfair)] text-lg font-bold text-black">
-              {formatCurrency(grandTotal)}
-            </p>
-          </div>
-        </div>
+        )}
+
+        {designsCreated && (
+          <>
+            <SourceListExecutiveSummary />
+
+            {/* Room filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wider text-black/50 mr-1">
+                Room:
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedRoom(null)}
+                className={`h-7 px-3 rounded-md text-xs font-medium border transition-colors ${
+                  selectedRoom === null
+                    ? "bg-black text-white border-black"
+                    : "bg-white border-black/20 text-black hover:bg-black/5"
+                }`}
+              >
+                All
+              </button>
+              {rooms.map((room) => (
+                <button
+                  key={room}
+                  type="button"
+                  onClick={() => setSelectedRoom(room)}
+                  className={`h-7 px-3 rounded-md text-xs font-medium border transition-colors ${
+                    selectedRoom === room
+                      ? "bg-black text-white border-black"
+                      : "bg-white border-black/20 text-black hover:bg-black/5"
+                  }`}
+                >
+                  {room}
+                </button>
+              ))}
+            </div>
+
+            <SourceListTable items={filteredItems} />
+
+            <div className="flex items-center justify-between rounded-xl border border-black/10 bg-white px-6 py-4 shadow-[0_10px_24px_rgba(17,17,17,0.06)]">
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-black/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="text-sm text-black/60">
+                  {filteredItems.length} line items
+                  {selectedRoom ? ` in ${selectedRoom}` : " across 3 phases"}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-black/50 block">Total</span>
+                <p className="font-[var(--font-playfair)] text-lg font-bold text-black">
+                  {formatCurrency(grandTotal)}
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </main>
     </ProjectRequiredGuard>

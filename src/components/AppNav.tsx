@@ -101,24 +101,33 @@ export function AppNav() {
               onMouseEnter={() => setDesignConceptOpen(true)}
               onMouseLeave={() => setDesignConceptOpen(false)}
             >
-              <button
-                type="button"
-                className={`text-sm font-medium tracking-wide transition-colors flex items-center gap-1 ${
-                  isDesignConceptActive ? "text-black" : "text-black/70 hover:text-black"
-                }`}
-                aria-expanded={designConceptOpen}
-                aria-haspopup="true"
-              >
-                Design Details
-                <svg
-                  className={`w-4 h-4 transition-transform ${designConceptOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              <div className="flex items-center gap-1">
+                <Link
+                  href="/designconcept"
+                  className={`text-sm font-medium tracking-wide transition-colors ${
+                    isDesignConceptActive ? "text-black" : "text-black/70 hover:text-black"
+                  }`}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                  Design Details
+                </Link>
+                <button
+                  type="button"
+                  className="flex items-center justify-center"
+                  aria-label="Open Design Details sections"
+                  aria-expanded={designConceptOpen}
+                  aria-haspopup="true"
+                  onClick={() => setDesignConceptOpen((open) => !open)}
+                >
+                  <svg
+                    className={`w-4 h-4 transition-transform ${designConceptOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
               {designConceptOpen && (
                 <div className="absolute top-full left-0 pt-1 z-20">
                   <div className="bg-white rounded-lg border border-black/10 shadow-lg py-2 min-w-[200px]">
@@ -254,9 +263,13 @@ export function AppNav() {
               Project Plan
             </Link>
             <div className="py-2">
-              <span className="block text-xs font-semibold uppercase tracking-wider text-black/50 mb-2">
+              <Link
+                href="/designconcept"
+                onClick={() => setMobileOpen(false)}
+                className="block text-xs font-semibold uppercase tracking-wider text-black/50 mb-2"
+              >
                 Design Details
-              </span>
+              </Link>
               <div className="pl-3 space-y-1">
                 {designConceptPaths.map(({ href, label }) => (
                   <Link

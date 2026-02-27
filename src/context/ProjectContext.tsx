@@ -27,6 +27,7 @@ type ProjectContextValue = {
   createProject: (name: string) => Project;
   updateProject: (id: string, updates: Partial<Pick<Project, "name" | "status">>) => void;
   refresh: () => void;
+  deleteProject: (id: string) => void;
 };
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
@@ -61,6 +62,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setProjects(getProjects());
   }, []);
 
+  const deleteProject = useCallback((id: string) => {
+    // Lazy import to avoid circular dependency at top-level
+    const { deleteProject: deleteProjectInStore } = require("@/lib/projectStore") as typeof import("@/lib/projectStore");
+    deleteProjectInStore(id);
+    setProjects(getProjects());
+    setCurrentId(getCurrentProjectId());
+  }, []);
+
   const value = useMemo<ProjectContextValue>(
     () => ({
       projects,
@@ -70,8 +79,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       createProject,
       updateProject,
       refresh,
+      deleteProject,
     }),
-    [projects, currentId, setCurrent, createProject, updateProject, refresh]
+    [projects, currentId, setCurrent, createProject, updateProject, refresh, deleteProject]
   );
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;

@@ -1,7 +1,7 @@
 // Multi-project persistence. Projects are stored in localStorage keyed by id.
 // Each project has: id, name, status. Current project id is stored separately.
 
-export type ProjectStatus = "draft" | "in_progress" | "complete";
+export type ProjectStatus = "draft" | "in_progress" | "complete" | "archived";
 
 export type Project = {
   id: string;
@@ -30,7 +30,7 @@ export function getProjects(): Project[] {
         typeof p === "object" &&
         typeof (p as Project).id === "string" &&
         typeof (p as Project).name === "string" &&
-        ["draft", "in_progress", "complete"].includes((p as Project).status)
+        ["draft", "in_progress", "complete", "archived"].includes((p as Project).status)
     );
   } catch {
     return [];
@@ -92,4 +92,14 @@ export function updateProject(id: string, updates: Partial<Pick<Project, "name" 
 
 export function getProject(id: string): Project | undefined {
   return getProjects().find((p) => p.id === id);
+}
+
+export function deleteProject(id: string): void {
+  const projects = getProjects();
+  const next = projects.filter((p) => p.id !== id);
+  saveProjects(next);
+  const current = getCurrentProjectId();
+  if (current === id) {
+    setCurrentProjectId(next.length > 0 ? next[0].id : null);
+  }
 }
