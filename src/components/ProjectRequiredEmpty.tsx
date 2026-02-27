@@ -6,15 +6,18 @@ import Link from "next/link";
  * Shown on Project Plan, Design Details, and Source List when the user
  * has no project yet or hasn’t completed the quiz / initiated the design.
  */
-export function ProjectRequiredEmpty() {
+export type ProjectRequiredEmptyVariant = "plan" | "designs";
+
+export function ProjectRequiredEmpty({ variant = "plan" }: { variant?: ProjectRequiredEmptyVariant }) {
+  const title = variant === "designs" ? "No Designs Created" : "No Project Plan Created";
   return (
     <main className="min-h-screen flex justify-center items-center px-4 py-10 bg-[var(--background)]">
       <div className="w-full max-w-md text-center space-y-6">
         <h1 className="font-[var(--font-playfair)] text-xl md:text-2xl leading-snug text-black">
-          No project ready yet
+          {title}
         </h1>
         <p className="text-sm text-black/70 leading-relaxed">
-          Come back once you’ve created a project and started the design intake. You can start from the Quiz to define scope, budget, and taste—then your Project Plan, Design Details, and Source List will appear here.
+          Come back once you've completed the Project Quiz. The Quiz will guide you to define your project's scope, budget, and taste. Once completed, your Project Plan will appear here
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link

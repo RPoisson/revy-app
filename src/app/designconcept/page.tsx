@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   buildPlaceholderDesignConcept,
@@ -11,11 +12,15 @@ import { ALL_ROOMS, getRoomLayout } from "./roomLayouts";
 import { RoomSelector } from "./RoomSelector";
 import { MoodboardCanvasView } from "./MoodboardCanvasView";
 import { SectionHeader, CARD_STYLE } from "./components/SectionHeader";
+import { useProjects } from "@/context/ProjectContext";
+import { getDesignsCreated } from "@/lib/designsCreatedStore";
 
 const PLACEHOLDER_ARCHETYPE: ArchetypeId = "provincial";
 const PLACEHOLDER_INVESTMENT_LABEL = "$200k–$350k";
 
 export default function DesignConceptPage() {
+  const { currentProjectId } = useProjects();
+  const designsCreated = getDesignsCreated(currentProjectId);
   const [selectedRoomId, setSelectedRoomId] = useState(ALL_ROOMS[0].id);
 
   const data: DesignConceptDetail = useMemo(
@@ -27,6 +32,20 @@ export default function DesignConceptPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)]" data-design-concept-detail>
+      {!designsCreated && (
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-6 pb-0">
+          <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900">
+            <p className="font-medium">No designs created yet</p>
+            <p className="mt-1 text-amber-800/90">
+              You have a project plan but haven&apos;t generated designs. Go to your{" "}
+              <Link href="/brief" className="underline font-medium hover:no-underline">
+                Project Plan
+              </Link>{" "}
+              and click <strong>Create Designs</strong> to generate them.
+            </p>
+          </div>
+        </div>
+      )}
       {/* 01 Summary */}
       <section
         id="executive-summary"

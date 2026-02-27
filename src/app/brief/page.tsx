@@ -8,6 +8,7 @@ import {
   getAnswers,
   QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
+import { setDesignsCreated } from "@/lib/designsCreatedStore";
 import { useProjects } from "@/context/ProjectContext";
 import { ProjectRequiredGuard } from "@/components/ProjectRequiredGuard";
 import { scoreQuiz } from "@/app/scoring";
@@ -596,9 +597,15 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
               Save / print
             </button>
             <button
+              onClick={() => {
+                if (currentProjectId) {
+                  setDesignsCreated(currentProjectId, true);
+                  router.push("/designconcept");
+                }
+              }}
               className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
             >
-              Generate Designs
+              Create Designs
             </button>
           </div>
         </section>
