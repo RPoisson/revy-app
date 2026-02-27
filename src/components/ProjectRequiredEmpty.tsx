@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 /**
- * Shown on Project Brief, Design Concept, and Source List when the user
+ * Shown on Project Plan, Design Details, and Source List when the user
  * has no project yet or hasn’t completed the quiz / initiated the design.
  */
 export function ProjectRequiredEmpty() {
@@ -14,14 +14,14 @@ export function ProjectRequiredEmpty() {
           No project ready yet
         </h1>
         <p className="text-sm text-black/70 leading-relaxed">
-          Come back once you’ve created a project and started the design intake. You can start from the Quiz to define scope, budget, and taste—then your Project Brief, Design Concept, and Source List will appear here.
+          Come back once you’ve created a project and started the design intake. You can start from the Quiz to define scope, budget, and taste—then your Project Plan, Design Details, and Source List will appear here.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/"
             className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide hover:bg-black/90 transition"
           >
-            Start Quiz / Intake
+            Start Project Quiz
           </Link>
           <Link
             href="/account"

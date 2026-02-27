@@ -7,9 +7,9 @@ import { StudioLogo } from "@/components/StudioLogo";
 import { useProjects } from "@/context/ProjectContext";
 
 const designConceptPaths = [
-  { href: "/designconcept/executive-summary", label: "Executive Summary" },
-  { href: "/designconcept/moodboard-layouts", label: "Moodboard Layouts" },
-  { href: "/designconcept/decision-detail", label: "Decision Detail" },
+  { href: "/designconcept#executive-summary", label: "Summary" },
+  { href: "/designconcept#moodboards", label: "Moodboards" },
+  { href: "/designconcept#decision-detail", label: "Decision Detail" },
 ];
 
 function NavLink({
@@ -82,10 +82,10 @@ export function AppNav() {
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-8">
-            <NavLink href="/">Quiz / Intake</NavLink>
-            <NavLink href="/brief">Project Brief</NavLink>
+            <NavLink href="/">Project Quiz</NavLink>
+            <NavLink href="/brief">Project Plan</NavLink>
 
-            {/* Design Concept with sub-links */}
+            {/* Design Details with sub-links */}
             <div
               className="relative"
               onMouseEnter={() => setDesignConceptOpen(true)}
@@ -99,7 +99,7 @@ export function AppNav() {
                 aria-expanded={designConceptOpen}
                 aria-haspopup="true"
               >
-                Design Concept
+                Design Details
                 <svg
                   className={`w-4 h-4 transition-transform ${designConceptOpen ? "rotate-180" : ""}`}
                   fill="none"
@@ -227,18 +227,18 @@ export function AppNav() {
               onClick={() => setMobileOpen(false)}
               className="block py-2 text-sm font-medium text-black/80"
             >
-              Quiz / Intake
+              Project Quiz
             </Link>
             <Link
               href="/brief"
               onClick={() => setMobileOpen(false)}
               className="block py-2 text-sm font-medium text-black/80"
             >
-              Project Brief
+              Project Plan
             </Link>
             <div className="py-2">
               <span className="block text-xs font-semibold uppercase tracking-wider text-black/50 mb-2">
-                Design Concept
+                Design Details
               </span>
               <div className="pl-3 space-y-1">
                 {designConceptPaths.map(({ href, label }) => (

@@ -35,7 +35,7 @@ export default function AccountPage() {
             Projects
           </h2>
           <p className="text-sm text-black/70">
-            Switch between projects or create a new one. Each project has its own quiz answers, brief, and design concept.
+            Switch between projects or create a new one. Each project has its own quiz answers, plan, and design concept.
           </p>
 
           {projects.length === 0 ? (

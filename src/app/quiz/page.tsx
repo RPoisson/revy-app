@@ -232,7 +232,7 @@ export default function QuizPage() {
   }
 
   const tooltipText =
-    "Revy will consider your scope and taste to shape a thoughtful design direction, grounded in what matters most for your project.";
+    "Revy considers your scope and taste to shape a thoughtful design direction grounded in reality. No commitment! Once you see your plan, you can go back to update any of your inputs to adjust the results";
 
   return (
     <main className="min-h-screen flex justify-center px-4 py-4 md:py-10">
@@ -353,7 +353,7 @@ export default function QuizPage() {
                   disabled={!canGoNext}
                   className="w-full md:w-auto text-xs md:text-sm px-8 py-2 rounded-full bg-black text-[#F8F5EE] disabled:opacity-40 hover:bg-black/90 transition"
                 >
-                  {isLast ? "Let’s Create your Project" : "Next"}
+                  {isLast ? "Create my Project Plan" : "Next"}
                 </button>
               </div>
             </div>

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import {
   getAnswers,
-  clearAnswers,
   QuizAnswers,
 } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
@@ -245,7 +244,7 @@ export default function BriefPage() {
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
           <h1 className="font-[var(--font-playfair)] text-xl">
-            Preparing your brief…
+            Preparing your plan…
           </h1>
           <p className="text-sm text-black/70 leading-relaxed">
             Pulling together your scope, investment range, and taste.
@@ -385,7 +384,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
       <div className="w-full max-w-2xl flex flex-col gap-8">
         <header className="space-y-2">
           <h1 className="font-[var(--font-playfair)] text-2xl md:text-3xl leading-snug">
-            Project Brief
+            Project Plan
           </h1>
           <p className="text-sm text-black/70 leading-relaxed">
             Built from your scope, investment range, constraints, and taste.
@@ -589,22 +588,17 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
             Edit answers
           </button>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                clearAnswers(currentProjectId ?? undefined);
-                router.push("/");
-              }}
-              className="text-xs md:text-sm px-5 py-2 rounded-full border border-black/20 bg-transparent hover:bg-black/5 transition"
-            >
-              Start a new project
-            </button>
-
+          <div className="flex gap-3 md:ml-auto">
             <button
               onClick={() => window.print()}
-              className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
+              className="text-xs md:text-sm px-6 py-2 rounded-full border border-black/20 bg-transparent hover:bg-black/5 transition"
             >
               Save / print
+            </button>
+            <button
+              className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
+            >
+              Generate Designs
             </button>
           </div>
         </section>
