@@ -124,9 +124,15 @@ function evalSimpleTrigger(expr: string, ctx: Record<string, any>): boolean {
 
   const readValue = (t: string) => {
     if (t in ctx) return ctx[t];
-    const n = Number(t);
+    // Strip surrounding single/double quotes so 'builder_plus' and "x" match literal values
+    const unquoted =
+      (t.length >= 2 &&
+        ((t.startsWith("'") && t.endsWith("'")) || (t.startsWith('"') && t.endsWith('"'))))
+        ? t.slice(1, -1)
+        : t;
+    const n = Number(unquoted);
     if (!Number.isNaN(n)) return n;
-    return t; // treat bare tokens as strings
+    return unquoted;
   };
 
   const asArraySafe = (v: any): any[] => {
@@ -146,7 +152,7 @@ function evalSimpleTrigger(expr: string, ctx: Record<string, any>): boolean {
       const arr = asArraySafe(a).map(String);
 
       // Special keyword: "bathroom" -> any room id containing "bath"
-      if (String(right).toLowerCase() === "bathroom") {
+      if (String(b).toLowerCase() === "bathroom") {
         return arr.some((x) => x.includes("bath"));
       }
 
@@ -344,6 +350,17 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
           : "low";
 
   // Recommendations: BU-01/02/03 (Budget) + FS-01 (Feasibility when living in home or unsure)
+  // When each rule SHOWS vs HIDES:
+  //   FS-01: SHOWS when (occupancy = full_time OR living_unsure) AND (scope is full/new_build OR rooms include whole_home/kitchen/bathroom).
+  //          HIDES when not living in home (occupancy = not_living_there) or scope is light (e.g. refresh) with no major rooms.
+  //   BU-01: SHOWS when budget_mismatch_risk is moderate or high (scope/finish vs investment range is tight or mismatch).
+  //          HIDES when budget_fit is comfortable (risk = low).
+  //   BU-02: SHOWS when finish_level = builder_plus.
+  //          HIDES when finish is mid, high, or not selected.
+  //   BU-03: SHOWS when scope_level != light_refresh AND rooms include at least one of: whole_home, kitchen, laundry, primary_bath, guest_bath, secondary_bath, powder, kids_bath.
+  //          HIDES when scope is light_refresh (not used in quiz; scope_level is "refresh") or no demo-heavy rooms selected.
+  // Scenario where NONE trigger: not living in home + comfortable budget + finish not builder_plus + rooms only e.g. living/dining (no kitchen/baths/whole_home).
+  // When no rules pass: Recommendations section is hidden (no fallback; rules are not shown).
   const revyRules = (() => {
     const base: RevyRule[] = [
       ...asArray(FS_01),
@@ -377,10 +394,15 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
       rooms: list(answers, "rooms"),
     };
 
-    return base.filter((r) => {
+    const filtered = base.filter((r) => {
       if (!r?.triggerLogic) return true;
-      return evalSimpleTrigger(r.triggerLogic, ctx);
+      try {
+        return evalSimpleTrigger(r.triggerLogic, ctx);
+      } catch {
+        return false;
+      }
     });
+    return filtered;
   })();
 
   return (
@@ -563,26 +585,28 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
           </div>
         </section>
 
-        {/* Recommendations */}
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-black/50">
-            Recommendations
-          </h2>
-          <p className="text-xs text-black/60 leading-relaxed">
-            These recommendations focus on <strong>Budget Alignment</strong>—calculating if your scope fits your investment range—and <strong>Construction Realities</strong>, identifying potential risks to your timeline or sequencing before you move into the design phase.
-          </p>
+        {/* Recommendations — only when any rules pass */}
+        {revyRules.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-black/50">
+              Recommendations
+            </h2>
+            <p className="text-xs text-black/60 leading-relaxed">
+              These recommendations focus on <strong>Budget Alignment</strong>—calculating if your scope fits your investment range—and <strong>Construction Realities</strong>, identifying potential risks to your timeline or sequencing before you move into the design phase.
+            </p>
 
-          <div className="space-y-4">
-            {revyRules.map((rule) => (
-              <div
-                key={rule.id}
-                className="rounded-2xl border border-black/10 bg-white/60 p-5 md:p-6"
-              >
-                <RuleOutput rule={rule} />
-              </div>
-            ))}
-          </div>
-        </section>
+            <div className="space-y-4">
+              {revyRules.map((rule) => (
+                <div
+                  key={rule.id}
+                  className="rounded-2xl border border-black/10 bg-white/60 p-5 md:p-6"
+                >
+                  <RuleOutput rule={rule} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Actions */}
         <section className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
