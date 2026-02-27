@@ -43,6 +43,9 @@ export function AppNav() {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
 
+  const quizHref = currentProjectId ? "/quiz/scope" : "/create-project";
+  const isQuizActive = pathname === "/" || pathname?.startsWith("/quiz");
+
   const isDesignConceptActive =
     pathname?.startsWith("/designconcept");
 
@@ -82,7 +85,14 @@ export function AppNav() {
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-8">
-            <NavLink href="/">Project Quiz</NavLink>
+            <Link
+              href={quizHref}
+              className={`text-sm font-medium tracking-wide transition-colors ${
+                isQuizActive ? "text-black" : "text-black/70 hover:text-black"
+              }`}
+            >
+              Project Quiz
+            </Link>
             <NavLink href="/brief">Project Plan</NavLink>
 
             {/* Design Details with sub-links */}
@@ -172,6 +182,13 @@ export function AppNav() {
                       ))
                     )}
                     <Link
+                      href="/create-project"
+                      className="block px-4 py-2 text-sm text-black/70 hover:bg-black/5 border-t border-black/5 mt-1"
+                      onClick={() => setProjectDropdownOpen(false)}
+                    >
+                      + Create new project
+                    </Link>
+                    <Link
                       href="/account"
                       className="block px-4 py-2 text-sm text-black/60 hover:bg-black/5 border-t border-black/5 mt-1"
                     >
@@ -223,7 +240,7 @@ export function AppNav() {
         <div className="lg:hidden border-t border-black/10 bg-white">
           <nav className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             <Link
-              href="/"
+              href={quizHref}
               onClick={() => setMobileOpen(false)}
               className="block py-2 text-sm font-medium text-black/80"
             >
@@ -267,6 +284,13 @@ export function AppNav() {
               <p className="text-sm text-black/70 py-1">
                 {currentProject ? currentProject.name : "No project selected"}
               </p>
+              <Link
+                href="/create-project"
+                onClick={() => setMobileOpen(false)}
+                className="block py-2 text-sm font-medium text-black/80"
+              >
+                + Create new project
+              </Link>
               <Link
                 href="/account"
                 onClick={() => setMobileOpen(false)}

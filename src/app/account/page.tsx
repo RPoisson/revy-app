@@ -3,12 +3,25 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useProjects } from "@/context/ProjectContext";
+import { getAnswers } from "@/app/quiz/lib/answersStore";
+import { getDesignsCreated } from "@/lib/designsCreatedStore";
 
 export default function AccountPage() {
   const router = useRouter();
   const { projects, currentProjectId, setCurrentProjectId, createProject } = useProjects();
   const [newProjectName, setNewProjectName] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+
+  const getProjectStageLabel = useCallback((projectId: string) => {
+    const answers = getAnswers(projectId);
+    const hasPlan = Object.keys(answers).length > 0;
+    if (!hasPlan) return "Draft — quiz not completed";
+
+    const hasDesigns = getDesignsCreated(projectId);
+    if (!hasDesigns) return "Planning — project plan created";
+
+    return "Designed — designs created";
+  }, []);
 
   const handleCreate = useCallback(() => {
     const name = newProjectName.trim() || "Untitled project";
@@ -54,7 +67,9 @@ export default function AccountPage() {
                     }`}
                   >
                     <span className="text-black">{p.name}</span>
-                    <span className="block text-xs text-black/50 mt-0.5 capitalize">{p.status}</span>
+                    <span className="block text-xs text-black/50 mt-0.5">
+                      {getProjectStageLabel(p.id)}
+                    </span>
                   </button>
                 </li>
               ))}

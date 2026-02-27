@@ -1,86 +1,71 @@
 // src/app/page.tsx
+"use client";
+
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useProjects } from "@/context/ProjectContext";
 
 export default function QuizIntroPage() {
+  const router = useRouter();
+  const { projects, setCurrentProjectId } = useProjects();
+
   return (
-    <main className="min-h-screen bg-white text-neutral-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-xl space-y-8">
-        {/* Context */}
-        <div className="text-center space-y-3">
-          <h1 className="font-[var(--font-playfair)] text-3xl leading-tight">
+    <main className="min-h-screen bg-[var(--background)] text-neutral-900 px-4 py-6 md:py-10">
+      <div className="max-w-5xl mx-auto">
+        <header className="text-center space-y-3 mb-8">
+          <h1 className="font-[var(--font-playfair)] text-3xl md:text-4xl leading-tight">
             Let’s get clarity on your project, together.
           </h1>
-
-          <p className="text-sm text-black/70 leading-relaxed">
-            You’ll answer a short set of guided questions, starting with scope and investment range. Then we’ll explore your taste to guide a design direction that’s intentional and doable.
+          <p className="text-sm text-black/70 leading-relaxed max-w-2xl mx-auto">
+            Choose a project to continue the quiz, or create a new one.
           </p>
-        </div>
+        </header>
 
-        {/* What to expect */}
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-neutral-900">
-            What to expect
-          </h2>
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {projects.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => {
+                setCurrentProjectId(p.id);
+                router.push("/quiz/scope");
+              }}
+              className="text-left rounded-2xl border border-black/10 bg-white/60 hover:bg-white/70 transition p-5 md:p-6"
+            >
+              <h2 className="font-[var(--font-playfair)] text-lg text-black truncate">
+                {p.name}
+              </h2>
+              <p className="text-xs text-black/50 mt-1 capitalize">
+                {p.status}
+              </p>
+              <p className="text-sm text-black/70 mt-4">
+                Continue Project Quiz →
+              </p>
+            </button>
+          ))}
 
-          <ul className="space-y-3 text-sm text-neutral-700">
-            <li className="flex gap-3">
-              <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white text-xs font-semibold">
-                1
-              </span>
-              <span>
-                We’ll start by defining what you’re building or updating, and your timeline for your project.
-              </span>
-            </li>
-
-            <li className="flex gap-3">
-              <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white text-xs font-semibold">
-                2
-              </span>
-              <span>
-                You’ll choose an investment range so recommendations stay
-                realistic and aligned.
-              </span>
-            </li>
-
-            <li className="flex gap-3">
-              <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white text-xs font-semibold">
-                3
-              </span>
-              <span>
-                Then we’ll explore your aesthetic preferences to guide the
-                design direction.
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Reassurance */}
-        <div className="rounded-2xl border border-neutral-200 p-5 space-y-2">
-          <p className="text-sm font-semibold text-neutral-900">
-            No commitments, no locking anything in
-          </p>
-          <p className="text-sm text-neutral-700 leading-relaxed">
-            Your answers help us guide decisions. You can adjust inputs at any time.
-          </p>
-        </div>
-
-        {/* CTA */}
-        <div className="flex flex-col items-center gap-3">
           <Link
-            href="/quiz/scope"
-            className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide hover:bg-black/90 transition"
+            href="/create-project"
+            className="rounded-2xl border border-dashed border-black/20 bg-transparent hover:bg-black/5 transition p-5 md:p-6 flex flex-col justify-between"
           >
-            Begin
+            <div>
+              <p className="text-xs tracking-[0.2em] uppercase text-black/50">
+                New project
+              </p>
+              <h2 className="font-[var(--font-playfair)] text-lg text-black mt-2">
+                Create a new project
+              </h2>
+              <p className="text-sm text-black/70 mt-2">
+                Name your project, then start the quiz.
+              </p>
+            </div>
+            <div className="mt-6">
+              <span className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide hover:bg-black/90 transition">
+                Begin Project
+              </span>
+            </div>
           </Link>
-
-          <p className="text-xs text-black/50">
-            Most people complete this in under 7 minutes
-          </p>
-
-          <Link href="/account" className="text-xs text-black/50 hover:text-black/70 underline">
-            Create or switch projects from Account
-          </Link>
-        </div>
+        </section>
       </div>
     </main>
   );
