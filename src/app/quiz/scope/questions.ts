@@ -24,13 +24,28 @@ export function roomNamesKey(roomId: string): string {
   return `room_names_${roomId}`;
 }
 
-/** Room IDs that are bathrooms and require tub/shower setup. Used for bathroom config questions. */
+/** Room IDs that are bathrooms and require tub/shower setup. Used for bathroom config questions. (Powder has no tub/shower.) */
+export const BATHROOM_CONFIG_ROOM_IDS = [
+  "primary_bath",
+  "guest_bath",
+  "secondary_bath",
+  "kids_bath",
+] as const;
+
+/** All bathroom room option IDs (including powder). */
 export const BATHROOM_ROOM_IDS = [
   "primary_bath",
   "guest_bath",
   "powder",
   "secondary_bath",
   "kids_bath",
+] as const;
+
+/** Setup options for each bathroom instance (one page, all bathrooms). */
+export const BATHROOM_CONFIG_OPTIONS = [
+  { id: "shower_only" as const, label: "Shower only" },
+  { id: "tub_and_shower_combined" as const, label: "Combined shower and tub (alcove)" },
+  { id: "tub_and_shower_separate" as const, label: "Separate shower and stand-alone tub" },
 ] as const;
 
 /** All room option IDs that support a quantity (multiple instances). When multiple are added, each must be named. */
@@ -83,6 +98,11 @@ function roomsIncludes(answers: Record<string, string[]>, roomId: string): boole
 
 function hasAnyRoomSelectedForNaming(answers: Record<string, string[]>): boolean {
   return (answers[ROOMS_ANSWER_KEY] ?? []).length > 0;
+}
+
+function hasAnyBathroomConfigSelected(answers: Record<string, string[]>): boolean {
+  const rooms = answers[ROOMS_ANSWER_KEY] ?? [];
+  return BATHROOM_CONFIG_ROOM_IDS.some((id) => rooms.includes(id));
 }
 
 export const SCOPE_QUESTIONS: Question[] = [
@@ -230,65 +250,17 @@ export const SCOPE_QUESTIONS: Question[] = [
   },
 
   {
-    id: bathroomConfigKey("primary_bath"),
-    title: "What’s the setup in your primary bathroom?",
-    subtitle: "This determines which products we recommend (shower tile, alcove tub, or stand-alone tub) and which layout we use.",
+    id: "bathroom_setup",
+    title: "What’s the setup in each bathroom?",
+    subtitle: "For each bathroom you added, choose the configuration. This determines which products we recommend (shower tile, alcove tub, or stand-alone tub) and which layout we use.",
     type: "single-image",
     allowMultiple: false,
     layout: "stack",
     required: true,
-    showIf: (answers) => roomsIncludes(answers as Record<string, string[]>, "primary_bath"),
-    options: [
-      { id: "shower_only", label: "Shower only" },
-      { id: "tub_and_shower_combined", label: "Combined shower and tub (alcove)" },
-      { id: "tub_and_shower_separate", label: "Separate shower and stand-alone tub" },
-    ],
+    showIf: (answers) => hasAnyBathroomConfigSelected(answers as Record<string, string[]>),
+    options: [], // Rendered as custom UI: one section per bathroom instance with 3 options each
   },
-  {
-    id: bathroomConfigKey("guest_bath"),
-    title: "What’s the setup in your guest bathroom?",
-    subtitle: "This determines which products we recommend and which layout we use.",
-    type: "single-image",
-    allowMultiple: false,
-    layout: "stack",
-    required: true,
-    showIf: (answers) => roomsIncludes(answers as Record<string, string[]>, "guest_bath"),
-    options: [
-      { id: "shower_only", label: "Shower only" },
-      { id: "tub_and_shower_combined", label: "Combined shower and tub (alcove)" },
-      { id: "tub_and_shower_separate", label: "Separate shower and stand-alone tub" },
-    ],
-  },
-  {
-    id: bathroomConfigKey("secondary_bath"),
-    title: "What’s the setup in your secondary bathroom?",
-    subtitle: "e.g. Hallway bathroom / shared use. This determines which products and layout we use.",
-    type: "single-image",
-    allowMultiple: false,
-    layout: "stack",
-    required: true,
-    showIf: (answers) => roomsIncludes(answers as Record<string, string[]>, "secondary_bath"),
-    options: [
-      { id: "shower_only", label: "Shower only" },
-      { id: "tub_and_shower_combined", label: "Combined shower and tub (alcove)" },
-      { id: "tub_and_shower_separate", label: "Separate shower and stand-alone tub" },
-    ],
-  },
-  {
-    id: bathroomConfigKey("kids_bath"),
-    title: "What’s the setup in your kids bathroom?",
-    subtitle: "This determines which products we recommend and which layout we use.",
-    type: "single-image",
-    allowMultiple: false,
-    layout: "stack",
-    required: true,
-    showIf: (answers) => roomsIncludes(answers as Record<string, string[]>, "kids_bath"),
-    options: [
-      { id: "shower_only", label: "Shower only" },
-      { id: "tub_and_shower_combined", label: "Combined shower and tub (alcove)" },
-      { id: "tub_and_shower_separate", label: "Separate shower and stand-alone tub" },
-    ],
-  },
+
 
   {
     id: "scope_level",

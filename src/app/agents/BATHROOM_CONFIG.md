@@ -14,9 +14,9 @@ The scope quiz (1) **names each space** (all room types) when multiple are added
 
 ## Quiz: tub/shower setup
 
-- **Question:** Shown only when the user selected that bathroom in "Which spaces are you building or updating?" (e.g. primary bathroom, guest bathroom, secondary bathroom, kids bathroom). Powder room has no tub/shower config question.
-- **Answer key:** `bathroom_config_<scopeRoomId>` (e.g. `bathroom_config_primary_bath`). Value is the first element of the selected option id: `shower_only` | `tub_and_shower_combined` | `tub_and_shower_separate`.
-- **Scope question module:** `bathroomConfigKey(roomId)` and type `BathroomConfigId` in `@/app/quiz/scope/questions`.
+- **Question:** One page, "What's the setup in each bathroom?" — shown when at least one full bathroom is selected (primary, guest, secondary, kids). Powder has no tub/shower config. For each bathroom instance (e.g. Guest bathroom (1), Guest bathroom (2)), the user picks one of three options.
+- **Answer key:** `bathroom_config_<scopeRoomId>` (e.g. `bathroom_config_guest_bath`). Value is a **string[]**: one config per instance, in order. Each element is `shower_only` | `tub_and_shower_combined` | `tub_and_shower_separate`. Example: 2 guest bathrooms → `["tub_and_shower_combined", "shower_only"]`.
+- **Scope question module:** `bathroomConfigKey(roomId)`, `BATHROOM_CONFIG_OPTIONS`, `BATHROOM_CONFIG_ROOM_IDS`, type `BathroomConfigId` in `@/app/quiz/scope/questions`.
 
 ---
 
@@ -32,7 +32,7 @@ Use **`getMoodboardLayoutIdForBathroom(scopeRoomId, config)`** from `@/app/agent
 | guest_bath, secondary_bath, kids_bath | shower_only \| tub_and_shower_separate | guest-kids-bath |
 | powder | (no config) | powder-room |
 
-Read config from answers: `const config = first(answers, bathroomConfigKey(scopeRoomId));` then `getMoodboardLayoutIdForBathroom(scopeRoomId, config)`.
+Read config per instance: `const configs = answers[bathroomConfigKey(scopeRoomId)] ?? [];` then for instance index `i`: `getMoodboardLayoutIdForBathroom(scopeRoomId, configs[i])`.
 
 ---
 
@@ -52,6 +52,6 @@ So the CD (or the slot list that the CD uses per room) should be derived from th
 
 ## Summary
 
-- **Quiz:** One question per full bathroom (primary, guest, secondary, kids), options: Shower only | Combined shower and tub (alcove) | Separate shower and stand-alone tub. Stored in `answers[bathroomConfigKey(roomId)]`.
+- **Quiz:** One page listing every bathroom instance; each instance gets one of: Shower only | Combined shower and tub (alcove) | Separate shower and stand-alone tub. Stored in `answers[bathroomConfigKey(roomId)]` as **string[]** (one element per instance).
 - **Studio Coordinator:** Use `getMoodboardLayoutIdForBathroom(scopeRoomId, config)` to choose the moodboard layout.
 - **Creative Director:** Use config to decide which tub-related slots to fill (shower floor/wall always; alcove tub vs freestanding tub per config).

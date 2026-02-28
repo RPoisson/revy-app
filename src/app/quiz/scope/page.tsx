@@ -11,6 +11,8 @@ import {
   roomNamesKey,
   COUNTABLE_OPTION_IDS,
   ROOM_OPTION_LABELS,
+  BATHROOM_CONFIG_ROOM_IDS,
+  BATHROOM_CONFIG_OPTIONS,
 } from "@/app/quiz/scope/questions";
 import {
   clearAnswers,
@@ -35,8 +37,71 @@ function getRoomCount(answers: QuizAnswers, roomId: string): number {
 
 const COUNTABLE_ROOM_IDS = new Set<string>(COUNTABLE_OPTION_IDS);
 
-/** Bathroom rooms that have a tub/shower config question. When unchecked, clear that config. */
-const BATHROOM_CONFIG_ROOM_IDS = ["primary_bath", "guest_bath", "secondary_bath", "kids_bath"];
+function BathroomSetupInputs({
+  answers,
+  onAnswersChange,
+  readOnly,
+}: {
+  answers: QuizAnswers;
+  onAnswersChange: (updater: (prev: QuizAnswers) => QuizAnswers) => void;
+  readOnly: boolean;
+}) {
+  const rooms = (answers["rooms"] ?? []).filter((id) =>
+    BATHROOM_CONFIG_ROOM_IDS.includes(id as (typeof BATHROOM_CONFIG_ROOM_IDS)[number])
+  );
+
+  function setConfigForRoom(roomId: string, configs: string[]) {
+    onAnswersChange((prev) => ({ ...prev, [bathroomConfigKey(roomId)]: configs }));
+  }
+
+  return (
+    <div className="space-y-8">
+      {rooms.map((roomId) => {
+        const count = getRoomCount(answers, roomId);
+        const raw = answers[bathroomConfigKey(roomId)] ?? [];
+        const configs: string[] = [...raw];
+        while (configs.length < count) configs.push("");
+        const names = answers[roomNamesKey(roomId)] ?? [];
+        const baseLabel = ROOM_OPTION_LABELS[roomId] ?? roomId;
+        return (
+          <div key={roomId} className="space-y-4">
+            {Array.from({ length: count }, (_, i) => {
+              const instanceLabel =
+                count === 1 ? baseLabel : names[i] || `${baseLabel} (${i + 1})`;
+              const selected = configs[i] ?? "";
+              return (
+                <div key={`${roomId}-${i}`} className="rounded-lg border border-black/10 bg-white/50 p-4 space-y-3">
+                  <p className="text-sm font-medium text-black/90">{instanceLabel}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {BATHROOM_CONFIG_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          const next = [...configs];
+                          next[i] = opt.id;
+                          setConfigForRoom(roomId, next);
+                        }}
+                        disabled={readOnly}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                          selected === opt.id
+                            ? "border-black bg-black text-white"
+                            : "border-black/20 bg-white text-black hover:bg-black/5"
+                        } disabled:opacity-70`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function RoomNamesInputs({
   answers,
@@ -180,6 +245,24 @@ export default function ScopePage() {
     // ✅ Room names: optional; no validation required
     if (question.id === "room_names") return true;
 
+    // ✅ Bathroom setup: require one selection per bathroom instance
+    if (question.id === "bathroom_setup") {
+      const rooms = (answers["rooms"] ?? []).filter((id) =>
+        BATHROOM_CONFIG_ROOM_IDS.includes(id as (typeof BATHROOM_CONFIG_ROOM_IDS)[number])
+      );
+      const validIds = new Set(BATHROOM_CONFIG_OPTIONS.map((o) => o.id));
+      for (const roomId of rooms) {
+        const count = getRoomCount(answers, roomId);
+        const configs = answers[bathroomConfigKey(roomId)] ?? [];
+        if (configs.length !== count) return false;
+        for (let i = 0; i < count; i++) {
+          const v = configs[i];
+          if (!v || !validIds.has(v as (typeof BATHROOM_CONFIG_OPTIONS)[number]["id"])) return false;
+        }
+      }
+      return true;
+    }
+
     return baseOk;
   }, [answers, question, locked]);
 
@@ -318,7 +401,13 @@ export default function ScopePage() {
 
         {/* Options or custom bathroom names */}
         <section className="mt-2">
-          {question.id === "room_names" ? (
+          {question.id === "bathroom_setup" ? (
+            <BathroomSetupInputs
+              answers={answers}
+              onAnswersChange={setAnswers}
+              readOnly={locked}
+            />
+          ) : question.id === "room_names" ? (
             <RoomNamesInputs
               answers={answers}
               onAnswersChange={setAnswers}

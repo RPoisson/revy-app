@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   buildPlaceholderDesignConcept,
   type DesignConceptDetail,
@@ -14,14 +14,38 @@ import { MoodboardCanvasView } from "./MoodboardCanvasView";
 import { SectionHeader, CARD_STYLE } from "./components/SectionHeader";
 import { useProjects } from "@/context/ProjectContext";
 import { getDesignsCreated } from "@/lib/designsCreatedStore";
+import { getAnswers } from "@/app/quiz/lib/answersStore";
+import { buildMoodboardRoomsFromScope, type MoodboardRoomItem } from "./buildMoodboardRooms";
 
 const PLACEHOLDER_ARCHETYPE: ArchetypeId = "provincial";
 const PLACEHOLDER_INVESTMENT_LABEL = "$200k–$350k";
 
+/** Rooms to show in selector: from scope (custom/default names) or fallback to ALL_ROOMS. */
+function useMoodboardRoomsList(designsCreated: boolean, projectId: string | undefined) {
+  return useMemo(() => {
+    if (!designsCreated) return ALL_ROOMS;
+    const answers = getAnswers(projectId);
+    const scopeRooms = buildMoodboardRoomsFromScope(answers);
+    if (scopeRooms.length > 0) return scopeRooms;
+    return ALL_ROOMS;
+  }, [designsCreated, projectId]);
+}
+
 export default function DesignConceptPage() {
   const { currentProjectId } = useProjects();
   const designsCreated = getDesignsCreated(currentProjectId);
-  const [selectedRoomId, setSelectedRoomId] = useState(ALL_ROOMS[0].id);
+  const roomsList = useMoodboardRoomsList(designsCreated, currentProjectId ?? undefined);
+
+  const firstId = useMemo(
+    () => (Array.isArray(roomsList) && roomsList.length > 0 ? (roomsList[0] as { id: string }).id : ALL_ROOMS[0].id),
+    [roomsList]
+  );
+  const [selectedRoomId, setSelectedRoomId] = useState(firstId);
+
+  useEffect(() => {
+    const ids = new Set(roomsList.map((r) => (r as { id: string }).id));
+    if (!ids.has(selectedRoomId)) setSelectedRoomId(firstId);
+  }, [roomsList, selectedRoomId, firstId]);
 
   const data: DesignConceptDetail = useMemo(
     () => buildPlaceholderDesignConcept(PLACEHOLDER_ARCHETYPE, PLACEHOLDER_INVESTMENT_LABEL),
@@ -29,6 +53,21 @@ export default function DesignConceptPage() {
   );
 
   const { executiveSummary, moodboard, materials } = data;
+
+  const selectedItem = useMemo(
+    () => roomsList.find((r) => (r as { id: string }).id === selectedRoomId),
+    [roomsList, selectedRoomId]
+  );
+  const layout = useMemo(() => {
+    const layoutId = (selectedItem as MoodboardRoomItem)?.layoutId ?? (selectedItem as { id: string })?.id ?? selectedRoomId;
+    return getRoomLayout(layoutId);
+  }, [selectedItem, selectedRoomId]);
+  const conceptLabel = useMemo(() => {
+    if (selectedItem && "displayName" in selectedItem && selectedItem.displayName)
+      return selectedItem.displayName;
+    if (selectedItem && "name" in selectedItem) return (selectedItem as { displayName?: string; name?: string }).displayName ?? (selectedItem as { name: string }).name;
+    return layout?.displayName ?? layout?.name ?? "Room";
+  }, [selectedItem, layout]);
 
   return (
     <div className="min-h-screen bg-[var(--background)]" data-design-concept-detail>
@@ -108,23 +147,19 @@ export default function DesignConceptPage() {
             />
             <div className="w-full max-w-[1000px] mx-auto mb-6">
               <RoomSelector
-                rooms={ALL_ROOMS}
+                rooms={roomsList}
                 selectedRoomId={selectedRoomId}
                 onSelect={setSelectedRoomId}
               />
             </div>
             <div className="max-w-[1000px] mx-auto">
-              {(() => {
-                const layout = getRoomLayout(selectedRoomId);
-                if (!layout) return null;
-                return (
-                  <MoodboardCanvasView
-                    layout={layout}
-                    paletteColors={moodboard.paletteStripColors}
-                    conceptLabel={layout.displayName ?? layout.name}
-                  />
-                );
-              })()}
+              {layout ? (
+                <MoodboardCanvasView
+                  layout={layout}
+                  paletteColors={moodboard.paletteStripColors}
+                  conceptLabel={conceptLabel}
+                />
+              ) : null}
             </div>
           </section>
 
@@ -140,7 +175,7 @@ export default function DesignConceptPage() {
             />
             <div className="w-full max-w-[1000px] mx-auto mb-6">
               <RoomSelector
-                rooms={ALL_ROOMS}
+                rooms={roomsList}
                 selectedRoomId={selectedRoomId}
                 onSelect={setSelectedRoomId}
               />

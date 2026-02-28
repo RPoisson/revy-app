@@ -19,6 +19,8 @@ export {
   bathroomNamesKey,
   roomNamesKey,
   BATHROOM_ROOM_IDS,
+  BATHROOM_CONFIG_ROOM_IDS,
+  BATHROOM_CONFIG_OPTIONS,
   COUNTABLE_OPTION_IDS,
   ROOM_OPTION_LABELS,
   type BathroomConfigId,

@@ -1,9 +1,14 @@
 "use client";
 
-import type { RoomLayoutSpec } from "./roomLayouts";
+/** Room list item: layout spec (name/displayName) or scope-built item (displayName from quiz). */
+interface RoomSelectorItem {
+  id: string;
+  name?: string;
+  displayName?: string;
+}
 
 interface RoomSelectorProps {
-  rooms: RoomLayoutSpec[];
+  rooms: RoomSelectorItem[];
   selectedRoomId: string;
   onSelect: (roomId: string) => void;
 }
@@ -13,6 +18,7 @@ export function RoomSelector({ rooms, selectedRoomId, onSelect }: RoomSelectorPr
     <nav className="flex flex-wrap gap-2">
       {rooms.map((room) => {
         const isSelected = selectedRoomId === room.id;
+        const label = room.displayName ?? room.name ?? "Room";
         return (
           <button
             key={room.id}
@@ -24,7 +30,7 @@ export function RoomSelector({ rooms, selectedRoomId, onSelect }: RoomSelectorPr
                 : "flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium border border-black/20 bg-white text-black hover:bg-black/5 hover:border-black/30 transition-colors"
             }
           >
-            {room.displayName ?? room.name}
+            {label}
           </button>
         );
       })}
