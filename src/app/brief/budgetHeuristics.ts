@@ -43,7 +43,6 @@ export const ROOM_POINTS: Record<string, number> = {
   office: 1,
   entry: 1,
   outdoor: 1,
-  whole_home: 18,
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -119,16 +118,8 @@ export function computeComplexityPoints(answers: QuizAnswers): number {
   const finishMult = getFinishMultiplier(finishLevel);
 
   let base = 0;
-  if (rooms.includes("whole_home")) {
-    base += ROOM_POINTS.whole_home ?? 0;
-    for (const roomId of rooms) {
-      if (roomId === "whole_home") continue;
-      base += Math.min(1, ROOM_POINTS[roomId] ?? 0);
-    }
-  } else {
-    for (const roomId of rooms) {
-      base += ROOM_POINTS[roomId] ?? 0;
-    }
+  for (const roomId of rooms) {
+    base += ROOM_POINTS[roomId] ?? 0;
   }
 
   return Math.round(base * scopeMult * finishMult);

@@ -7,7 +7,7 @@ export const BU_03: RevyRule = {
 
   // Hidden for light_refresh (cosmetic) only; show when scope is partial/full and includes demo-heavy rooms
   triggerLogic:
-    "scope_level != light_refresh AND rooms include whole_home OR scope_level != light_refresh AND rooms include kitchen OR scope_level != light_refresh AND rooms include laundry OR scope_level != light_refresh AND rooms include primary_bath OR scope_level != light_refresh AND rooms include guest_bath OR scope_level != light_refresh AND rooms include secondary_bath OR scope_level != light_refresh AND rooms include powder OR scope_level != light_refresh AND rooms include kids_bath",
+    "scope_level != light_refresh AND rooms include kitchen OR scope_level != light_refresh AND rooms include laundry OR scope_level != light_refresh AND rooms include primary_bath OR scope_level != light_refresh AND rooms include guest_bath OR scope_level != light_refresh AND rooms include secondary_bath OR scope_level != light_refresh AND rooms include powder OR scope_level != light_refresh AND rooms include kids_bath",
 
   primaryRecommendation:
     "Plan for some flexibility in your budget—projects that open walls or touch kitchens, baths, or utilities often uncover conditions that aren’t visible upfront.",
@@ -38,7 +38,7 @@ export const BU_03: RevyRule = {
       title: "Where budget surprises usually come from",
       subsections: [
         {
-          title: "Demo-heavy areas (kitchens, baths, laundry, whole-home)",
+          title: "Demo-heavy areas (kitchens, baths, laundry)",
           bullets: [
             "Substrate repairs (rot, uneven floors, cracked slabs)",
             "Waterproofing corrections or upgrades",

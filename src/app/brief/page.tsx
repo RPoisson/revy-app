@@ -333,15 +333,15 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
 
   // Recommendations: BU-01/02/03 (Budget) + FS-01 (Feasibility when living in home or unsure)
   // When each rule SHOWS vs HIDES:
-  //   FS-01: SHOWS when (occupancy = full_time OR living_unsure) AND (scope is full/new_build OR rooms include whole_home/kitchen/bathroom).
+  //   FS-01: SHOWS when (occupancy = full_time OR living_unsure) AND (scope is full/new_build OR rooms include kitchen/bathroom).
   //          HIDES when not living in home (occupancy = not_living_there) or scope is light (e.g. refresh) with no major rooms.
   //   BU-01: SHOWS when budget_mismatch_risk is moderate or high (scope/finish vs investment range is tight or mismatch).
   //          HIDES when budget_fit is comfortable (risk = low).
   //   BU-02: SHOWS when finish_level = builder_plus.
   //          HIDES when finish is mid, high, or not selected.
-  //   BU-03: SHOWS when scope_level != light_refresh AND rooms include at least one of: whole_home, kitchen, laundry, primary_bath, guest_bath, secondary_bath, powder, kids_bath.
+  //   BU-03: SHOWS when scope_level != light_refresh AND rooms include at least one of: kitchen, laundry, primary_bath, guest_bath, secondary_bath, powder, kids_bath.
   //          HIDES when scope is light_refresh (not used in quiz; scope_level is "refresh") or no demo-heavy rooms selected.
-  // Scenario where NONE trigger: not living in home + comfortable budget + finish not builder_plus + rooms only e.g. living/dining (no kitchen/baths/whole_home).
+  // Scenario where NONE trigger: not living in home + comfortable budget + finish not builder_plus + rooms only e.g. living/dining (no kitchen/baths).
   // When no rules pass: Recommendations section is hidden (no fallback; rules are not shown).
   // Recommendations: BU-01/02/03 (Budget) + FS-01 (Feasibility when living in home or unsure)
   const revyRules = (() => {

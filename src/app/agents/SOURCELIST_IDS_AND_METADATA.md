@@ -10,7 +10,7 @@ The **Creative Director** returns **real products from the DB** (multiple per sl
 
 **RoomDimensions** is optional context passed into the PM agent via `ProjectMetadata.dimensions`. It is used for **one technical rule today**:
 
-- **40-inch rule (lighting in bathrooms only):** For bathroom walls where a mirror/vanity is planned, if the wall width is **under 40 inches**, the agent overrides any side-mounted sconce with a **horizontal overhead fixture**. This rule applies only to **lighting** slots in bathrooms; other slots (tile, hardware, countertop, etc.) are not considered.
+- **36-inch rule (lighting in bathrooms only):** For bathroom walls where a mirror/vanity is planned, if the wall width is **under 36 inches**, the agent overrides any side-mounted sconce with a **horizontal overhead fixture**. This threshold applies to **all archetypes**. For 36" walls, ensure product data includes suitable **sconce and mirror pairings** that fit within 36" with **at least 1" margin on each side of the sconce** (so mirror + sconces + margins fit the space). This rule applies only to **lighting** slots in bathrooms; other slots (tile, hardware, countertop, etc.) are not considered.
 
 So you only need to supply `RoomDimensions` when:
 
@@ -23,7 +23,7 @@ Fields used:
 - `roomId` — matches the room (e.g. `primary_bath`, `guest_bath`).
 - `wallWidthInches` — width of the relevant wall in inches.
 
-If `dimensions` is omitted or empty, the 40-inch rule is skipped; no errors. Other dimension keys (e.g. ceiling height) can be added later for other rules.
+If `dimensions` is omitted or empty, the 36-inch rule is skipped; no errors. Other dimension keys (e.g. ceiling height) can be added later for other rules.
 
 ---
 
@@ -35,7 +35,7 @@ If `dimensions` is omitted or empty, the 40-inch rule is skipped; no errors. Oth
 |--------|----------------|----------------|
 | **Material/slot identity** | PM agent swap maps, Creative Director selections | Stable **material IDs** (e.g. `stone.quartz_soft_white`, `flooring.marble_basketweave`, `metal.brass_lacquered_gold`) that both the agent and your sourcelist can use. These can be your own SKU or product keys. |
 | **Swap / tier mapping** | `materialSwapMaps.ts`, PM agent logic | Either: (1) tags on each product in the DB (e.g. `material_family: stone`, `finish: unlacquered`, `tier: Luxury`), or (2) a small mapping table that says “this product ID is Luxury” / “swap from A to B”. |
-| **Room dimensions** | Optional input to PM agent | Only if you want the 40-inch rule: store or compute `wallWidthInches` (and optionally other dimensions) per room. Can come from builder takeoffs or templates, not from the product DB. |
+| **Room dimensions** | Optional input to PM agent | Only if you want the 36-inch rule: store or compute `wallWidthInches` (and optionally other dimensions) per room. Can come from builder takeoffs or templates, not from the product DB. |
 
 ### What can be interpreted (no need to tag every product)
 

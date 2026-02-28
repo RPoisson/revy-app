@@ -5,7 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Question } from "@/questions";
 import QuestionOptions from "@/app/quiz/components/QuestionOptions";
-import { SCOPE_QUESTIONS } from "@/app/quiz/scope/questions";
+import {
+  SCOPE_QUESTIONS,
+  bathroomConfigKey,
+  roomNamesKey,
+  COUNTABLE_OPTION_IDS,
+  ROOM_OPTION_LABELS,
+} from "@/app/quiz/scope/questions";
 import {
   clearAnswers,
   getAnswers,
@@ -20,15 +26,77 @@ function qtyKey(optionId: string) {
   return `rooms_qty_${optionId}`;
 }
 
-const COUNTABLE_ROOM_IDS = new Set<string>([
-  "guest_bath",
-  "powder",
-  "secondary_bath",
-  "kids_bath",
-  "nursery_bedroom",
-  "child_bedroom",
-  "teen_bedroom",
-]);
+/** Parse room count from qty answer; "7_plus" => 7. */
+function getRoomCount(answers: QuizAnswers, roomId: string): number {
+  const v = answers[qtyKey(roomId)]?.[0];
+  if (v === "7_plus") return 7;
+  return Math.max(1, parseInt(String(v ?? "1"), 10) || 1);
+}
+
+const COUNTABLE_ROOM_IDS = new Set<string>(COUNTABLE_OPTION_IDS);
+
+/** Bathroom rooms that have a tub/shower config question. When unchecked, clear that config. */
+const BATHROOM_CONFIG_ROOM_IDS = ["primary_bath", "guest_bath", "secondary_bath", "kids_bath"];
+
+function RoomNamesInputs({
+  answers,
+  onAnswersChange,
+  readOnly,
+  qtyKey,
+}: {
+  answers: QuizAnswers;
+  onAnswersChange: (updater: (prev: QuizAnswers) => QuizAnswers) => void;
+  readOnly: boolean;
+  qtyKey: (optionId: string) => string;
+}) {
+  const selectedRooms = answers["rooms"] ?? [];
+
+  function setNamesForRoom(roomId: string, names: string[]) {
+    onAnswersChange((prev) => ({ ...prev, [roomNamesKey(roomId)]: names }));
+  }
+
+  return (
+    <div className="space-y-6">
+      {selectedRooms.map((roomId) => {
+        const count = getRoomCount(answers, roomId);
+        const raw = answers[roomNamesKey(roomId)] ?? [];
+        const names: string[] = [...raw];
+        while (names.length < count) names.push("");
+        const baseLabel = ROOM_OPTION_LABELS[roomId] ?? roomId;
+        return (
+          <div key={roomId} className="space-y-2">
+            {count === 1 ? (
+              <label className="block text-sm font-medium text-black/80">
+                {baseLabel}
+              </label>
+            ) : null}
+            {Array.from({ length: count }, (_, i) => (
+              <div key={`${roomId}-${i}`} className="space-y-1">
+                {count > 1 ? (
+                  <label className="block text-sm font-medium text-black/80">
+                    {baseLabel} ({i + 1})
+                  </label>
+                ) : null}
+                <input
+                  type="text"
+                  value={names[i] ?? ""}
+                  onChange={(e) => {
+                    const next = [...names];
+                    next[i] = e.target.value;
+                    setNamesForRoom(roomId, next);
+                  }}
+                  disabled={readOnly}
+                  placeholder={count === 1 ? `e.g. ${baseLabel}` : `Name for ${baseLabel} ${i + 1}`}
+                  className="w-full rounded-lg border border-black/20 bg-white px-3 py-2 text-sm text-black placeholder:text-black/40 focus:border-black/40 focus:outline-none disabled:bg-black/5 disabled:opacity-70"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ScopePage() {
   const router = useRouter();
@@ -36,10 +104,18 @@ export default function ScopePage() {
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(() => getAnswers(currentProjectId ?? undefined));
-   const [locked, setLocked] = useState(false);
+  const [locked, setLocked] = useState(false);
 
-  const total = SCOPE_QUESTIONS.length;
-  const question = SCOPE_QUESTIONS[step];
+  const visibleQuestions = useMemo(
+    () =>
+      SCOPE_QUESTIONS.filter(
+        (q) => !q.showIf || q.showIf(answers as Record<string, string[]>)
+      ),
+    [answers]
+  );
+
+  const total = visibleQuestions.length;
+  const question = visibleQuestions[step];
 
   const safeProgress = total > 0 ? ((step + 1) / total) * 100 : 0;
   const isLast = step === total - 1;
@@ -52,6 +128,12 @@ export default function ScopePage() {
   useEffect(() => {
     saveAnswers(answers, currentProjectId ?? undefined);
   }, [answers, currentProjectId]);
+
+  useEffect(() => {
+    if (step >= visibleQuestions.length && visibleQuestions.length > 0) {
+      setStep(visibleQuestions.length - 1);
+    }
+  }, [visibleQuestions.length, step]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -73,6 +155,17 @@ export default function ScopePage() {
       return baseOk && !missingQty;
     }
 
+    // ✅ Room names: require one non-empty name per room instance (all room types)
+    if (question.id === "room_names") {
+      const rooms = answers["rooms"] ?? [];
+      for (const roomId of rooms) {
+        const count = getRoomCount(answers, roomId);
+        const names = answers[roomNamesKey(roomId)] ?? [];
+        if (names.length !== count || names.some((n) => !n || !String(n).trim())) return false;
+      }
+      return true;
+    }
+
     return baseOk;
   }, [answers, question, locked]);
 
@@ -87,11 +180,21 @@ export default function ScopePage() {
           ? current.filter((id) => id !== optionId)
           : [...current, optionId];
 
-        // ✅ If unselecting a countable room, also clear its qty answer
-        if (q.id === "rooms" && exists && COUNTABLE_ROOM_IDS.has(optionId)) {
-          const key = qtyKey(optionId);
-          const { [key]: _, ...rest } = prev as any;
-          return { ...rest, [q.id]: nextSelected } as QuizAnswers;
+        // ✅ If unselecting a room, clear its qty, bathroom config (if bath), and room names
+        if (q.id === "rooms" && exists) {
+          let next: QuizAnswers = { ...prev, [q.id]: nextSelected };
+          if (COUNTABLE_ROOM_IDS.has(optionId)) {
+            const { [qtyKey(optionId)]: _, ...rest } = next as Record<string, string[]>;
+            next = rest as QuizAnswers;
+          }
+          if (BATHROOM_CONFIG_ROOM_IDS.includes(optionId)) {
+            const key = bathroomConfigKey(optionId);
+            const { [key]: __, ...rest } = next as Record<string, string[]>;
+            next = rest as QuizAnswers;
+          }
+          const { [roomNamesKey(optionId)]: ___, ...restNames } = next as Record<string, string[]>;
+          next = restNames as QuizAnswers;
+          return next;
         }
 
         return { ...prev, [q.id]: nextSelected };
@@ -199,16 +302,25 @@ export default function ScopePage() {
           ) : null}
         </section>
 
-        {/* Options */}
+        {/* Options or custom bathroom names */}
         <section className="mt-2">
-          <QuestionOptions
-            question={question}
-            selected={answers[question.id] ?? []}
-            onSelect={toggleOption}
-            answers={answers}
-            onAnswersChange={setAnswers} // ✅ now supported by component
-            readOnly={locked}
-          />
+          {question.id === "room_names" ? (
+            <RoomNamesInputs
+              answers={answers}
+              onAnswersChange={setAnswers}
+              readOnly={locked}
+              qtyKey={qtyKey}
+            />
+          ) : (
+            <QuestionOptions
+              question={question}
+              selected={answers[question.id] ?? []}
+              onSelect={toggleOption}
+              answers={answers}
+              onAnswersChange={setAnswers}
+              readOnly={locked}
+            />
+          )}
         </section>
 
         {/* Footer */}

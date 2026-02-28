@@ -10,17 +10,15 @@ export const FS_01: RevyRule = {
    * Equivalent intent:
    * (occupancy = full_time OR occupancy = living_unsure)
    * AND
-   * (scope_level = full OR scope_level = new_build OR rooms include whole_home OR rooms include kitchen OR rooms include bathroom)
+   * (scope_level = full OR scope_level = new_build OR rooms include kitchen OR rooms include bathroom)
    */
   triggerLogic: `
 occupancy = full_time AND scope_level = full
 OR occupancy = full_time AND scope_level = new_build
-OR occupancy = full_time AND rooms include whole_home
 OR occupancy = full_time AND rooms include kitchen
 OR occupancy = full_time AND rooms include bathroom
 OR occupancy = living_unsure AND scope_level = full
 OR occupancy = living_unsure AND scope_level = new_build
-OR occupancy = living_unsure AND rooms include whole_home
 OR occupancy = living_unsure AND rooms include kitchen
 OR occupancy = living_unsure AND rooms include bathroom
   `.trim().replace(/\s+/g, " "),

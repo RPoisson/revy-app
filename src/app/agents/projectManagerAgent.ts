@@ -29,7 +29,7 @@ import {
   RENTAL_METAL_FINISH_FROM,
 } from "./materialSwapMaps";
 
-const BATH_WALL_MIN_WIDTH_INCHES = 40;
+const BATH_WALL_MIN_WIDTH_INCHES = 36;
 
 const DEFAULT_SCOPE_REASONING =
   "Within scope and investment range; suitable for selected finish level.";
@@ -215,7 +215,7 @@ function applyFinishTierConstraints(
   return materials;
 }
 
-/** 4. Technical: 40-inch rule (lighting in bathrooms only) — wall < 40" → override side sconce with horizontal overhead. Other slots are unchanged. */
+/** 4. Technical: 36-inch rule (lighting in bathrooms only) — wall < 36" → override side sconce with horizontal overhead. Other slots are unchanged. */
 function apply40InchRule(
   dimensions: RoomDimensions[] | undefined,
   materials: ProposedMaterial[],
@@ -236,9 +236,9 @@ function apply40InchRule(
     const roomId = (m.roomId ?? "").toLowerCase();
     if (!narrowRoomIds.has(roomId)) return m;
     reasoning.push(
-      `Bathroom wall width under 40": overrode side-mounted sconce with horizontal overhead fixture for ${roomId}.`
+      `Bathroom wall width under 36": overrode side-mounted sconce with horizontal overhead fixture for ${roomId}.`
     );
-    addScopeReason(scopeByKey, m, "Wall under 40\" wide; horizontal overhead fixture specified instead of sconces.");
+    addScopeReason(scopeByKey, m, "Wall under 36\" wide; horizontal overhead fixture specified instead of sconces.");
     return {
       ...m,
       id: OVERHEAD_FIXTURE_PLACEHOLDER_ID,
@@ -248,7 +248,7 @@ function apply40InchRule(
 }
 
 /**
- * Run the full PM Agent: fiscal audit, maintenance/ownership, finish tier, 40-inch rule.
+ * Run the full PM Agent: fiscal audit, maintenance/ownership, finish tier, 36-inch rule.
  * Returns auditedMaterials (each with scopeReasoning for the Decision Details Scope column),
  * budgetStatus, and professionalReasoning. Studio Coordinator uses scopeReasoning only — no rule UI.
  */

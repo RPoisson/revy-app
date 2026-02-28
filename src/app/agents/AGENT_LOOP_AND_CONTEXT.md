@@ -17,7 +17,7 @@ All of this is in the repo under **`revy/revy-quiz/src/app/agents/`**:
 | `index.ts` | Exports `runProjectManagerSelection`, `runProjectManagerAudit`, and all types. |
 | `LOOP_AND_PAIRING.md` | Loop order and pairing rules (CD ↔ PM ↔ Studio Coordinator). |
 | `MASTER_PRODUCTS_SUPABASE.md` | Master Products schema, pgVector note, CD ↔ PM loop (no “linking” step). |
-| `SOURCELIST_IDS_AND_METADATA.md` | RoomDimensions, IDs/tagging, 40-inch rule (lighting in bathrooms only). |
+| `SOURCELIST_IDS_AND_METADATA.md` | RoomDimensions, IDs/tagging, 36-inch rule (lighting in bathrooms only). |
 
 **You do not need to save PM agent “detail” elsewhere** — it’s already in these files. This doc is the **context to share back** so the next session knows the loop and contracts.
 
@@ -33,7 +33,7 @@ All of this is in the repo under **`revy/revy-quiz/src/app/agents/`**:
 3. **Project Manager** (built):
    - **Input**: `ProjectMetadata` (answers, optional RoomDimensions) + `CreativeDirectorOutput`.
    - **Output**: `ProjectManagerSelectionOutput` — **exactly one product per slot** (no nulls), `scopeReasoning` per slot, `budgetStatus`, `professionalReasoning`.
-   - **Responsibility**: Finish/scope rules first (rental, flip, finish tier, 40-inch rule for **lighting in bathrooms only**), then pairing (filter slotKeyB by compatibility with selected slotKeyA), then budget; guarantee one product per slot.
+   - **Responsibility**: Finish/scope rules first (rental, flip, finish tier, 36-inch rule for **lighting in bathrooms only**), then pairing (filter slotKeyB by compatibility with selected slotKeyA), then budget; guarantee one product per slot.
 4. **Studio Coordinator** (to finalize):
    - **Input**: PM output (selections, scopeReasoning) + any layout/room config.
    - **Output**: Renders **Design Details** — moodboards and **Decision Details table** (Scope column = PM’s `scopeReasoning`; no rule IDs shown).
@@ -52,7 +52,7 @@ The Creative Director must return a **`CreativeDirectorOutput`** with:
 
 **ProductCandidate** (each candidate from the DB) must include at least:
 
-- `id`, `vendor`, `vendor_sku`, `slotId`, `roomId?`, `title`, `material`, `finish?`, `finish_family?`, `tier?`, `price?`, `currency?`, `fixtureType?` (for lighting; 40-inch rule only for lighting in bathrooms), `compatibility_key?`, `metal_match_key?`, `pairing_option?`, `url?`, `image_url1?`.
+- `id`, `vendor`, `vendor_sku`, `slotId`, `roomId?`, `title`, `material`, `finish?`, `finish_family?`, `tier?`, `price?`, `currency?`, `fixtureType?` (for lighting; 36-inch rule only for lighting in bathrooms), `compatibility_key?`, `metal_match_key?`, `pairing_option?`, `url?`, `image_url1?`.
 
 **Contract**: At least one candidate per slot so the PM can always return one product per slot (no nulls). Pairing rules use the same slot keys as in `candidatesBySlot` / `slots`.
 
@@ -60,14 +60,14 @@ The Creative Director must return a **`CreativeDirectorOutput`** with:
 
 ## 4. Project Manager input/output (already implemented)
 
-- **Input**: `ProjectMetadata` (`.answers` = quiz answers, `.dimensions?` = optional RoomDimensions for 40-inch rule) and `CreativeDirectorOutput` (candidates + pairing rules).
+- **Input**: `ProjectMetadata` (`.answers` = quiz answers, `.dimensions?` = optional RoomDimensions for 36-inch rule) and `CreativeDirectorOutput` (candidates + pairing rules).
 - **Output**: `ProjectManagerSelectionOutput`:
   - `selectionsBySlot`: one `SelectedProduct` per slot key.
   - `selections`: ordered list for Studio Coordinator.
   - Each `SelectedProduct`: `product` (ProductCandidate), `scopeReasoning` (human-readable for Decision Details Scope column).
   - `budgetStatus`, `professionalReasoning`.
 
-**Selection order**: Derived from pairing rules (slotKeyA before slotKeyB). For each slot, PM applies finish/scope, then pairing filter, then budget rank, and picks one. 40-inch rule applies **only to lighting in bathrooms**; other slots are not considered.
+**Selection order**: Derived from pairing rules (slotKeyA before slotKeyB). For each slot, PM applies finish/scope, then pairing filter, then budget rank, and picks one. 36-inch rule applies **only to lighting in bathrooms**; other slots are not considered.
 
 ---
 
@@ -75,6 +75,14 @@ The Creative Director must return a **`CreativeDirectorOutput`** with:
 
 - **Input**: PM’s `ProjectManagerSelectionOutput` (e.g. `selections`, `selectionsBySlot`) and any room/layout config.
 - **Renders**: Design Details moodboards and Decision Details table; Scope column = each selection’s `scopeReasoning`; no rule IDs or rule UI.
+
+### Future-proofing: multiple moodboards per room & user interaction
+
+The CD and types are designed so you can later support:
+- **Multiple moodboards per room** — Store several variations (`MoodboardVariation[]` per room); generate by running CD → PM multiple times (or extend CD to return N option sets).
+- **User adjustment** — User selects an element (e.g. a light fixture) and asks to change it; send `UserAdjustmentRequest` (target slot + request) and current moodboard state to CD; CD returns new candidates; PM re-runs for that slot (and paired slots); merge result back into the variation.
+
+See **`CD_MULTIPLE_MOODBOARDS_AND_INTERACTION.md`** for types (`MoodboardElementTarget`, `UserAdjustmentRequest`, `MoodboardVariation`, `RoomMoodboardSet`), extended `CreativeDirectorInput` (`adjustmentRequest`, `currentMoodboardState`), and the flow for "change this fixture."
 
 ---
 

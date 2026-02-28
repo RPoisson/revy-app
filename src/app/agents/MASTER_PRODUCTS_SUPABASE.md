@@ -18,7 +18,7 @@ From your **Revy MasterProducts - Master Products.csv**:
 | `url` | Direct link (Procurement can refresh from here) | — | — |
 | `image_url1`–`image_url3` | Thumbnails, moodboard | — | — |
 | `price`, `currency` | Cost, budget | — | **Yes** |
-| `width_in`, `depth_in`, `height_in`, `length_in`, `diameter_in` | Dimensions, 40-inch rule | **RoomDimensions** (if you store room-level dims separately) | — |
+| `width_in`, `depth_in`, `height_in`, `length_in`, `diameter_in` | Dimensions, 36-inch rule | **RoomDimensions** (if you store room-level dims separately) | — |
 | `finish` | honed, glazed, matte, etc. | **Rental swap**: unlacquered/raw → lacquered | — |
 | `material` | marble, porcelain, zellige, limestone, cement, stone | **Rental swap**: marble/limestone/terracotta → quartz/porcelain; **Finish tier** veto | — |
 | `color` | Display, filters | — | — |
@@ -30,12 +30,12 @@ From your **Revy MasterProducts - Master Products.csv**:
 | `lead_time_days` | Sequencing, FS-02 | — | **Yes** |
 | `shipping_notes` | — | — | **Yes** |
 | `in_stock`, `discontinued` | Availability | — | **Yes** |
-| `application` | floor, wall, shower, etc. | 40-inch rule: lighting install_type | — |
+| `application` | floor, wall, shower, etc. | 36-inch rule: lighting install_type | — |
 | `wet_location_rating`, `bathroom_wetroom_ok` | PM / feasibility | — | — |
 | `finish_family`, `metal_match_key`, `compatibility_key` | PM metal/stone rules | **Rental** metal swap | — |
 | `price_unit`, `coverage_per_unit_sqft` | Costing | — | — |
 
-Product-level dimensions (`width_in`, etc.) describe the **product**. The PM agent’s **RoomDimensions** (e.g. bathroom wall &lt; 40") are **room** attributes (from takeoffs or templates), not per-SKU — so you don’t need to change product rows for the 40-inch rule; you pass room dimensions into the PM agent separately.
+Product-level dimensions (`width_in`, etc.) describe the **product**. The PM agent’s **RoomDimensions** (e.g. bathroom wall &lt; 36") are **room** attributes (from takeoffs or templates), not per-SKU — so you don’t need to change product rows for the 36-inch rule; you pass room dimensions into the PM agent separately.
 
 ---
 
@@ -48,7 +48,7 @@ Product-level dimensions (`width_in`, etc.) describe the **product**. The PM age
 
 You **do not** need pgVector for:
 
-- **PM agent logic**: fiscal audit, rental/flip swaps, finish tier, 40-inch rule — all use `material`, `finish`, `finish_family`, and rule-based maps. Normal columns and indexes are enough.
+- **PM agent logic**: fiscal audit, rental/flip swaps, finish tier, 36-inch rule — all use `material`, `finish`, `finish_family`, and rule-based maps. Normal columns and indexes are enough.
 - **Filtering** by category, material, finish, price, lead time — standard B-tree indexes are sufficient.
 
 **Recommendation:** Add pgVector when you implement **semantic product search** or **style-based recommendation** (Creative Director pulling from Master Products). Until then, your current columns are enough for PM and for filter-based selection.
@@ -136,7 +136,7 @@ Use a **composite key** `(vendor, vendor_sku)` as the stable product id in the a
 In the **loop** design, there is **no separate step** where the PM returns an abstract ID that you then “link” to the DB.
 
 1. **Creative Director** queries the DB (e.g. by style, archetype, slot) and returns **real products** — multiple per slot — with `vendor`, `vendor_sku`, `material`, `finish`, `price`, etc. (the `ProductCandidate` shape).
-2. **Project Manager** receives that list and, for each slot, applies **finish/scope rules first** (e.g. rental: drop marble; 40-inch rule only for lighting in bathrooms: drop sconces in narrow baths), then **budget** (e.g. prefer lower price when tight), and **selects exactly one product per slot**. The PM output is already the **chosen product rows** (or their ids).
+2. **Project Manager** receives that list and, for each slot, applies **finish/scope rules first** (e.g. rental: drop marble; 36-inch rule only for lighting in bathrooms: drop sconces in narrow baths), then **budget** (e.g. prefer lower price when tight), and **selects exactly one product per slot**. The PM output is already the **chosen product rows** (or their ids).
 3. **Studio Coordinator** uses the selected product’s `vendor`, `vendor_sku`, `url`, and `scopeReasoning` directly for the Decision Details table and sourcelist. No “resolve material ID to product” step — the PM is choosing from real products the CD supplied.
 
 So you do **not** need a `revy_material_id` column or a rule-based “resolve ID to product” layer for this flow. The only requirement is that the Creative Director returns at least one candidate per slot so the PM can always return one product per slot (no nulls).

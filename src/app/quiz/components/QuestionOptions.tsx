@@ -6,20 +6,13 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Question, Option } from "@/questions";
 import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
+import { COUNTABLE_OPTION_IDS } from "@/app/quiz/scope/questions";
 
 function qtyKey(optionId: string) {
   return `rooms_qty_${optionId}`;
 }
 
-const COUNTABLE_ROOM_IDS = new Set<string>([
-  "guest_bath",
-  "powder",
-  "secondary_bath",
-  "kids_bath",
-  "nursery_bedroom",
-  "child_bedroom",
-  "teen_bedroom",
-]);
+const COUNTABLE_ROOM_IDS = new Set<string>(COUNTABLE_OPTION_IDS);
 
 const QTY_OPTIONS: { value: string; label: string }[] = [
   { value: "1", label: "1" },

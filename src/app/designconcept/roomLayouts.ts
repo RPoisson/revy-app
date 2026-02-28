@@ -119,7 +119,7 @@ export const KITCHEN: RoomLayoutSpec = {
 
 export const PRIMARY_BATHROOM: RoomLayoutSpec = {
   id: "primary-bathroom",
-  name: "Primary Bathroom",
+  name: "Bathroom (Separate shower / stand-alone tub)",
   version: MOODBOARD_LAYOUT_VERSION,
   aspectRatio: 3 / 2,
   background: "#f8f5ee",
@@ -152,7 +152,7 @@ export const PRIMARY_BATHROOM: RoomLayoutSpec = {
 
 export const GUEST_KIDS_BATH: RoomLayoutSpec = {
   id: "guest-kids-bath",
-  name: "Guest / Kids Bath",
+  name: "Bathroom (Shower only)",
   displayName: "Bathroom",
   version: MOODBOARD_LAYOUT_VERSION,
   aspectRatio: 3 / 2,
@@ -349,7 +349,7 @@ export const BEDROOMS: RoomLayoutSpec = {
 
 export const PRIMARY_BATHROOM_NO_TUB: RoomLayoutSpec = {
   id: "primary-bathroom-no-tub",
-  name: "Primary Bath (No Tub)",
+  name: "Bathroom (Shower only)",
   version: MOODBOARD_LAYOUT_VERSION,
   aspectRatio: 3 / 2,
   background: "#f8f5ee",
@@ -381,7 +381,7 @@ export const PRIMARY_BATHROOM_NO_TUB: RoomLayoutSpec = {
 
 export const GUEST_KIDS_BATH_TUB_SHOWER: RoomLayoutSpec = {
   id: "guest-kids-bath-tub-shower",
-  name: "Guest/Kids Bath (Tub+Shower)",
+  name: "Bathroom (Combined shower and alcove tub)",
   displayName: "Bathroom",
   version: MOODBOARD_LAYOUT_VERSION,
   aspectRatio: 3 / 2,

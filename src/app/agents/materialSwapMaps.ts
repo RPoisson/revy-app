@@ -71,5 +71,5 @@ export const EXOTIC_STONE_IDS = new Set<string>([
   "stone.taj_mahal_quartzite",
 ]);
 
-/** Default overhead fixture id when 40-inch rule forces swap from sconce. */
+/** Default overhead fixture id when 36-inch rule forces swap from sconce. */
 export const OVERHEAD_FIXTURE_PLACEHOLDER_ID = "lighting.overhead_horizontal";

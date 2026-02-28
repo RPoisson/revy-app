@@ -19,7 +19,7 @@ import type {
   SelectedProduct,
 } from "./projectManagerAgent.types";
 
-const BATH_WALL_MIN_WIDTH_INCHES = 40;
+const BATH_WALL_MIN_WIDTH_INCHES = 36;
 const DEFAULT_SCOPE_REASONING =
   "Within scope and investment range; suitable for selected finish level.";
 
@@ -41,7 +41,7 @@ function slotKey(slotId: string, roomId?: string): string {
   return roomId ? `${slotId}|${roomId}` : slotId;
 }
 
-/** Returns true if candidate passes finish/scope rules (rental, flip, finish tier, 40-inch). */
+/** Returns true if candidate passes finish/scope rules (rental, flip, finish tier, 36-inch). */
 function passesFinishAndScopeRules(
   c: ProductCandidate,
   projectFor: string | undefined,
@@ -53,10 +53,10 @@ function passesFinishAndScopeRules(
   const fin = (c.finish ?? "").toLowerCase();
   const room = (c.roomId ?? "").toLowerCase();
 
-  // 40-inch rule applies only to lighting in bathrooms; other slots are not considered.
+  // 36-inch rule applies only to lighting in bathrooms; other slots are not considered.
   const isLightingSlot = c.slotId.toLowerCase().includes("light");
   if (isLightingSlot && c.fixtureType === "sconce" && narrowBathRoomIds.has(room)) {
-    return { pass: false, reason: "Wall under 40\" wide; sconce excluded; prefer overhead." };
+    return { pass: false, reason: "Wall under 36\" wide; sconce excluded; prefer overhead." };
   }
 
   if (projectFor === "investment_rental") {

@@ -10,7 +10,7 @@
 2. **Project Manager** receives that output and:
    - Derives a **selection order** from pairing rules: for each rule “slotKeyB must match slotKeyA,” the PM selects **slotKeyA first**, then **slotKeyB** (so slotKeyB can be filtered by the chosen product for slotKeyA).
    - For each slot, in that order:
-     - Applies **finish/scope rules** (rental, flip, finish tier; 40-inch rule only for lighting in bathrooms).
+     - Applies **finish/scope rules** (rental, flip, finish tier; 36-inch rule only for lighting in bathrooms).
      - Applies **pairing**: if this slot is a `slotKeyB`, keeps only candidates compatible with the already-selected product for `slotKeyA`.
      - Ranks by **budget** and picks one.
    - Returns **exactly one product per slot**, with no nulls. Selections respect pairing so products across slots are compatible.
