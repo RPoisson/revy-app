@@ -284,7 +284,7 @@ export default function ScopePage() {
             const { [qtyKey(optionId)]: _, ...rest } = next as Record<string, string[]>;
             next = rest as QuizAnswers;
           }
-          if (BATHROOM_CONFIG_ROOM_IDS.includes(optionId)) {
+          if ((BATHROOM_CONFIG_ROOM_IDS as readonly string[]).includes(optionId)) {
             const key = bathroomConfigKey(optionId);
             const { [key]: __, ...rest } = next as Record<string, string[]>;
             next = rest as QuizAnswers;

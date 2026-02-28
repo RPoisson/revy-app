@@ -2,19 +2,8 @@
 
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Playfair_Display, Inter } from "next/font/google";
 import { ProjectProvider } from "@/context/ProjectContext";
 import { AppNav } from "@/components/AppNav";
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
@@ -40,10 +29,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${playfair.variable}`}
-    >
+    <html lang="en" className="font-sans" style={{ fontFamily: "var(--font-inter), ui-sans-serif, sans-serif" }}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+          rel="stylesheet"
+        />
+        <style dangerouslySetInnerHTML={{ __html: ":root{--font-playfair:'Playfair Display',serif;--font-inter:'Inter',ui-sans-serif,sans-serif}" }} />
+      </head>
       <body>
         <ProjectProvider>
           <div className="min-h-screen flex flex-col">
