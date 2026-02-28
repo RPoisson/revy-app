@@ -129,6 +129,28 @@ export default function ScopePage() {
     saveAnswers(answers, currentProjectId ?? undefined);
   }, [answers, currentProjectId]);
 
+  // Pre-fill default room names when user lands on the "Name each space" step and names are not yet set
+  useEffect(() => {
+    if (question?.id !== "room_names") return;
+    const rooms = answers["rooms"] ?? [];
+    let updated = false;
+    const next = { ...answers } as Record<string, string[]>;
+    for (const roomId of rooms) {
+      const count = getRoomCount(answers, roomId);
+      const key = roomNamesKey(roomId);
+      const current = next[key] ?? [];
+      if (current.length > 0) continue; // Already have names (user may have edited)
+      const baseLabel = ROOM_OPTION_LABELS[roomId] ?? roomId;
+      const defaultNames = Array.from(
+        { length: count },
+        (_, i) => (count === 1 ? baseLabel : `${baseLabel} (${i + 1})`)
+      );
+      next[key] = defaultNames;
+      updated = true;
+    }
+    if (updated) setAnswers(next as QuizAnswers);
+  }, [question?.id, answers["rooms"]]);
+
   useEffect(() => {
     if (step >= visibleQuestions.length && visibleQuestions.length > 0) {
       setStep(visibleQuestions.length - 1);
@@ -155,16 +177,8 @@ export default function ScopePage() {
       return baseOk && !missingQty;
     }
 
-    // ✅ Room names: require one non-empty name per room instance (all room types)
-    if (question.id === "room_names") {
-      const rooms = answers["rooms"] ?? [];
-      for (const roomId of rooms) {
-        const count = getRoomCount(answers, roomId);
-        const names = answers[roomNamesKey(roomId)] ?? [];
-        if (names.length !== count || names.some((n) => !n || !String(n).trim())) return false;
-      }
-      return true;
-    }
+    // ✅ Room names: optional; no validation required
+    if (question.id === "room_names") return true;
 
     return baseOk;
   }, [answers, question, locked]);

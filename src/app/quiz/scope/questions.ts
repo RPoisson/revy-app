@@ -218,13 +218,13 @@ export const SCOPE_QUESTIONS: Question[] = [
 
   {
     id: "room_names",
-    title: "Name each space",
+    title: "Name each space (optional)",
     subtitle:
-      "Give each space a name so you can tell them apart in your moodboards and recommendations. Enter a name for every room you added (e.g. Master Bath, Main Kitchen, Guest Bedroom 1).",
+      "You can give each space a custom name so they’re easy to tell apart in your moodboards and recommendations. Default names are already filled in—edit them if you like, or leave as-is.",
     type: "single-image",
     allowMultiple: false,
     layout: "stack",
-    required: true,
+    required: false,
     showIf: (answers) => hasAnyRoomSelectedForNaming(answers as Record<string, string[]>),
     options: [], // Rendered as custom text inputs in scope page
   },
