@@ -66,7 +66,7 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<QuizAnswers>({});
 
   const [completed, setCompleted] = useState(false);
-  const [locked, setLocked] = useState(false);
+  const [locked] = useState(false);
 
   // Popover state for final CTA info (mobile + desktop tap)
   const [infoOpen, setInfoOpen] = useState(false);
@@ -81,7 +81,6 @@ export default function QuizPage() {
     setMounted(true);
     const stored = getAnswers(currentProjectId ?? undefined);
     setAnswers(stored);
-    setLocked(getDesignsCreated(currentProjectId ?? undefined));
   }, [currentProjectId]);
 
   useEffect(() => {

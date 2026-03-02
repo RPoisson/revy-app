@@ -160,11 +160,10 @@ function RoomNamesInputs({
 
 export default function ScopePage() {
   const router = useRouter();
-  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { currentProjectId } = useProjects();
   const { getAnswers, saveAnswers, clearAnswers } = useAnswers();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({});
-  const [locked, setLocked] = useState(false);
 
   const visibleQuestions = useMemo(
     () =>
@@ -182,7 +181,6 @@ export default function ScopePage() {
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
-    setLocked(getDesignsCreated(currentProjectId ?? undefined));
   }, [currentProjectId, getAnswers]);
 
   useEffect(() => {
@@ -223,7 +221,6 @@ export default function ScopePage() {
 
   const canGoNext = useMemo(() => {
     if (!question) return false;
-    if (locked) return true;
     const current = answers[question.id] ?? [];
     const baseOk = question.required ? current.length > 0 : true;
 
@@ -259,10 +256,9 @@ export default function ScopePage() {
     }
 
     return baseOk;
-  }, [answers, question, locked]);
+  }, [answers, question]);
 
   function toggleOption(q: Question, optionId: string) {
-    if (locked) return;
     setAnswers((prev) => {
       const current = prev[q.id] ?? [];
 
@@ -307,9 +303,7 @@ export default function ScopePage() {
   }
 
   function handleExit() {
-    if (!locked) {
-      clearAnswers(currentProjectId ?? undefined);
-    }
+    clearAnswers(currentProjectId ?? undefined);
     router.push("/");
   }
 
@@ -400,13 +394,13 @@ export default function ScopePage() {
             <BathroomSetupInputs
               answers={answers}
               onAnswersChange={setAnswers}
-              readOnly={locked}
+              readOnly={false}
             />
           ) : question.id === "room_names" ? (
             <RoomNamesInputs
               answers={answers}
               onAnswersChange={setAnswers}
-              readOnly={locked}
+              readOnly={false}
               qtyKey={qtyKey}
             />
           ) : (
@@ -416,7 +410,7 @@ export default function ScopePage() {
               onSelect={toggleOption}
               answers={answers}
               onAnswersChange={setAnswers}
-              readOnly={locked}
+              readOnly={false}
             />
           )}
         </section>
