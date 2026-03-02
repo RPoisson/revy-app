@@ -5,6 +5,7 @@
 import type { ArchetypeId } from "@/app/style/styleDNA";
 import { STYLE_DNA } from "@/app/style/styleDNA";
 import type { SlotId } from "@/app/style/style_render_map";
+import type { ProjectManagerSelectionOutput, SelectedProduct } from "@/app/agents/projectManagerAgent.types";
 
 export type MoodboardAspectRatio = "1:1" | "1.5:1" | "3:4";
 
@@ -14,13 +15,13 @@ export type NarrativeBlock = {
 };
 
 export type ExecutiveSummary = {
-  /** Investment capacity label (from budget heuristics / Intake) */
+  /** Investment capacity label (from budget heuristics / quiz intake) */
   investmentRangeLabel: string;
-  /** Fiscal reasoning for high/low choices (Project Manager) */
+  /** High-level summary of scope and budget decisions (summarizes Decision Detail reasoning) */
   strategicTradeoffs: string[];
-  /** StyleDNA title e.g. "Tonal Curated Textured Provincial" */
+  /** StyleDNA title from user's style (quiz/intake), e.g. "Tonal Curated Textured Provincial" */
   styleDNATitle: string;
-  /** Narrative blocks for 2x2 grid (Lovable-style). Built from above + optional 4th. */
+  /** Narrative blocks for 2x2 grid. Built from quiz/intake style and scope/budget summary. */
   blocks: NarrativeBlock[];
 };
 
@@ -35,11 +36,10 @@ export type MaterialDecisionRow = {
   slotTitle: string;
   thumbnailUrl: string;
   description: string;
-  /** Style logic (Creative Director) */
+  /** Style logic for this selection (from quiz/intake style; shown in Decision Detail) */
   styleReasoning: string;
   /**
-   * Scope column in Decision Details table. Studio Coordinator should set this from the
-   * PM agent's auditedMaterials[].scopeReasoning (human-readable only; no rule IDs).
+   * Scope column in Decision Details table. Human-readable scope reasoning only; no rule IDs.
    */
   functionalReasoning: string;
 };
@@ -65,6 +65,100 @@ const SLOT_TITLES: Record<SlotId, string> = {
   architecture: "Architecture",
   ceiling: "Ceiling",
 };
+
+/** Slot keys from PM can be "slotId" or "slotId|roomId"; base slot id for display. */
+function slotKeyToSlotId(slotKey: string): string {
+  return slotKey.includes("|") ? slotKey.split("|")[0] : slotKey;
+}
+
+/**
+ * Build Design Concept Detail from the CD → PM pipeline output.
+ * Used when the user has clicked "Create Designs" and we have agent output in the store.
+ * When summaryBlocks are provided (from LLM), they are used for the executive summary blocks.
+ */
+export function buildDesignConceptFromAgentOutput(
+  pmOutput: ProjectManagerSelectionOutput,
+  options: {
+    archetype: ArchetypeId;
+    investmentRangeLabel: string;
+    /** LLM-generated blocks; when provided, used instead of template blocks */
+    summaryBlocks?: NarrativeBlock[];
+  }
+): DesignConceptDetail {
+  const { archetype, investmentRangeLabel, summaryBlocks: llmBlocks } = options;
+  const dna = STYLE_DNA[archetype];
+
+  const materialsResolved: MaterialDecisionRow[] = Object.entries(pmOutput.selectionsBySlot).map(
+    ([slotKey, sel]) => {
+      const slotIdRaw = slotKeyToSlotId(slotKey);
+      const slotId = slotIdRaw as SlotId;
+      return {
+        slotId,
+        slotTitle: SLOT_TITLES[slotId] ?? slotIdRaw.replace(/_/g, " "),
+        thumbnailUrl: sel.product.image_url1 ?? PLACEHOLDER_IMG,
+        description: sel.product.title ?? "",
+        styleReasoning: sel.styleReasoning ?? "Aligns with style intent.",
+        functionalReasoning: sel.scopeReasoning,
+      };
+    }
+  );
+
+  const hexByArchetype: Record<ArchetypeId, string[]> = {
+    provincial: ["#e8e4dc", "#d4cfc4", "#7d9aa8", "#b8860b"],
+    parisian: ["#f5f0e8", "#d4d0c8", "#2c2c2c", "#c9a227"],
+    mediterranean: ["#faf6f0", "#e8dcc8", "#6b8e6b", "#4682b4"],
+  };
+  const paletteStripColors = hexByArchetype[archetype] ?? hexByArchetype.provincial;
+  const styleDNATitle = ["Tonal", "Curated", dna.label].join(" ");
+  const styleHighlights = dna.signatureNotes?.slice(0, 3).join(", ") ?? "";
+  const strategicTradeoffsSummary =
+    pmOutput.budgetStatus === "comfortable"
+      ? `Selections fit comfortably within ${investmentRangeLabel}. Scope and finish level were applied consistently—the Decision Detail table below spells out the specific reasoning for each selection.`
+      : pmOutput.budgetStatus === "tight"
+        ? `Selections are aligned to ${investmentRangeLabel} with limited flexibility. Where trade-offs were needed, scope and durability were prioritized. See the Decision Detail table below for per-item reasoning.`
+        : `Selections were made within your stated scope and budget parameters. The Decision Detail table below summarizes the style and scope logic behind each choice.`;
+
+  const blocks: NarrativeBlock[] =
+    llmBlocks && llmBlocks.length >= 4
+      ? llmBlocks
+      : [
+          {
+            title: "Targeting Your Investment Range",
+            body: `Every selection has been curated to align with ${investmentRangeLabel}. Budget status: ${pmOutput.budgetStatus}. We've balanced focal-point pieces with cost-effective elements so the overall investment stays within range.`,
+          },
+          {
+            title: "Strategic Trade-offs",
+            body: strategicTradeoffsSummary,
+          },
+          {
+            title: "Matches Your Unique Style",
+            body: `Your StyleDNA: ${styleDNATitle}. ${dna.essence}${styleHighlights ? ` Key themes: ${styleHighlights}.` : ""} Each product was chosen to reinforce this—spaces that feel ${dna.settingVibe}.`,
+          },
+          {
+            title: "Intentional Selections",
+            body: "Nothing here is arbitrary. Each material, fixture, and finish was selected for a specific reason—driven by the style and scope logic of your project. The Decision Detail table below outlines the reasoning for every selection.",
+          },
+        ];
+
+  return {
+    executiveSummary: {
+      investmentRangeLabel,
+      strategicTradeoffs: [strategicTradeoffsSummary],
+      styleDNATitle,
+      blocks,
+    },
+    moodboard: {
+      conceptLabel: `${dna.label} — ${dna.settingVibe}`,
+      paletteStripColors,
+      images: [
+        { src: PLACEHOLDER_IMG, aspectRatio: "1.5:1", conceptLabel: "Overview" },
+        { src: PLACEHOLDER_IMG, aspectRatio: "1:1", conceptLabel: "Floor" },
+        { src: PLACEHOLDER_IMG, aspectRatio: "3:4", conceptLabel: "Wall" },
+      ],
+    },
+    materials: materialsResolved,
+  };
+}
 
 const PLACEHOLDER_IMG =
   "data:image/svg+xml;utf8," +
@@ -128,10 +222,7 @@ export function buildPlaceholderDesignConcept(
     };
   });
 
-  const strategicTradeoffs = [
-    "Prioritizing key wet rooms and shared spaces within the selected range.",
-    "Finish level aligned to investment capacity to avoid over- or under-spec.",
-  ];
+  const styleHighlights = dna.signatureNotes?.slice(0, 3).join(", ") ?? "";
   const blocks: NarrativeBlock[] = [
     {
       title: "Targeting Your Investment Range",
@@ -139,22 +230,25 @@ export function buildPlaceholderDesignConcept(
     },
     {
       title: "Strategic Trade-offs",
-      body: strategicTradeoffs.join(" ") + " Where budget required compromise, we prioritized durability in high-traffic areas and visual impact in primary sight-lines.",
+      body: "Selections are aligned to your scope and investment range. Where trade-offs were needed, durability and finish level were prioritized. The Decision Detail table below outlines the specific reasoning for each selection.",
     },
     {
       title: "Matches Your Unique Style",
-      body: `Your StyleDNA: ${styleDNATitle}. ${dna.essence} Each product was chosen to reinforce this balance—spaces that feel both curated and lived-in.`,
+      body: `Your StyleDNA: ${styleDNATitle}. ${dna.essence}${styleHighlights ? ` Key themes: ${styleHighlights}.` : ""} Each product was chosen to reinforce this—spaces that feel ${dna.settingVibe}.`,
     },
     {
       title: "Intentional Selections",
-      body: "Nothing here is arbitrary. Each material, fixture, and finish was selected for a specific reason—whether style logic from the Creative Director or scope and budget fit from the Project Manager.",
+      body: "Nothing here is arbitrary. Each material, fixture, and finish was selected for a specific reason—driven by the style and scope logic of your project. The Decision Detail table below outlines the reasoning for every selection.",
     },
   ];
+
+  const placeholderStrategicSummary =
+    "Selections are aligned to your scope and investment range. The Decision Detail table below outlines the specific reasoning for each selection.";
 
   return {
     executiveSummary: {
       investmentRangeLabel,
-      strategicTradeoffs,
+      strategicTradeoffs: [placeholderStrategicSummary],
       styleDNATitle,
       blocks,
     },

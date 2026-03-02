@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import {
   buildPlaceholderDesignConcept,
+  buildDesignConceptFromAgentOutput,
   type DesignConceptDetail,
 } from "./designConceptData";
 import type { ArchetypeId } from "@/app/style/styleDNA";
@@ -14,11 +15,22 @@ import { MoodboardCanvasView } from "./MoodboardCanvasView";
 import { SectionHeader, CARD_STYLE } from "./components/SectionHeader";
 import { useProjects } from "@/context/ProjectContext";
 import { getDesignsCreated } from "@/lib/designsCreatedStore";
-import { getAnswers } from "@/app/quiz/lib/answersStore";
+import { getAnswers, type QuizAnswers } from "@/app/quiz/lib/answersStore";
+import { getDesignConceptOutput } from "@/lib/designConceptStore";
 import { buildMoodboardRoomsFromScope, type MoodboardRoomItem } from "./buildMoodboardRooms";
+import { scoreQuiz } from "@/app/scoring";
+import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
 
 const PLACEHOLDER_ARCHETYPE: ArchetypeId = "provincial";
 const PLACEHOLDER_INVESTMENT_LABEL = "$200k–$350k";
+
+function getInvestmentRangeLabel(answers: QuizAnswers): string {
+  const id = answers["investment_range"]?.[0];
+  if (!id) return PLACEHOLDER_INVESTMENT_LABEL;
+  const q = BUDGET_QUESTIONS.find((x) => x.id === "investment_range");
+  const opt = q?.options?.find((o) => o.id === id);
+  return opt?.label ?? PLACEHOLDER_INVESTMENT_LABEL;
+}
 
 /** Rooms to show in selector: from scope (custom/default names) or fallback to ALL_ROOMS. */
 function useMoodboardRoomsList(designsCreated: boolean, projectId: string | undefined) {
@@ -47,10 +59,26 @@ export default function DesignConceptPage() {
     if (!ids.has(selectedRoomId)) setSelectedRoomId(firstId);
   }, [roomsList, selectedRoomId, firstId]);
 
-  const data: DesignConceptDetail = useMemo(
-    () => buildPlaceholderDesignConcept(PLACEHOLDER_ARCHETYPE, PLACEHOLDER_INVESTMENT_LABEL),
-    []
+  const agentOutput = getDesignConceptOutput(currentProjectId ?? undefined);
+  const answers = useMemo(
+    () => getAnswers(currentProjectId ?? undefined) ?? undefined,
+    [currentProjectId]
   );
+
+  const data: DesignConceptDetail = useMemo(() => {
+    const investmentLabel = answers ? getInvestmentRangeLabel(answers) : PLACEHOLDER_INVESTMENT_LABEL;
+    const pmOutput = agentOutput?.pmOutput;
+    if (designsCreated && pmOutput && answers && Object.keys(pmOutput.selectionsBySlot).length > 0) {
+      const styleResult = scoreQuiz(answers as Record<string, string | string[]>);
+      const archetype = (styleResult.primaryArchetype ?? PLACEHOLDER_ARCHETYPE) as ArchetypeId;
+      return buildDesignConceptFromAgentOutput(pmOutput, {
+        archetype,
+        investmentRangeLabel: investmentLabel,
+        summaryBlocks: agentOutput.summaryBlocks,
+      });
+    }
+    return buildPlaceholderDesignConcept(PLACEHOLDER_ARCHETYPE, investmentLabel);
+  }, [designsCreated, agentOutput, answers]);
 
   const { executiveSummary, moodboard, materials } = data;
 

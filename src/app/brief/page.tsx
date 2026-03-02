@@ -40,6 +40,15 @@ import {
   getBudgetCapacityPoints,
 } from "@/app/brief/budgetHeuristics";
 
+// CD → PM pipeline (run when user clicks "Create Designs")
+import { buildCreativeDirectorInput } from "@/app/agents/buildCreativeDirectorInput";
+import { runCreativeDirector } from "@/app/agents/creativeDirectorAgent";
+import { runProjectManagerSelection } from "@/app/agents/projectManagerSelection";
+import { buildMoodboardRoomsFromScope } from "@/app/designconcept/buildMoodboardRooms";
+import { setDesignConceptOutput } from "@/lib/designConceptStore";
+import type { ArchetypeId } from "@/app/style/styleDNA";
+import { STYLE_DNA } from "@/app/style/styleDNA";
+
 function first(answers: QuizAnswers, key: string): string | undefined {
   const v = answers[key];
   if (!v || v.length === 0) return undefined;
@@ -229,6 +238,8 @@ export default function BriefPage() {
 
   const [answers, setAnswers] = useState<QuizAnswers | null>(null);
   const [hasDesigns, setHasDesigns] = useState(false);
+  const [confirmCreateOpen, setConfirmCreateOpen] = useState(false);
+  const [creatingDesigns, setCreatingDesigns] = useState(false);
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
@@ -265,6 +276,122 @@ export default function BriefPage() {
   }
 
   const hasAnyAnswers = Object.keys(answers).length > 0;
+
+  async function handleCreateDesigns() {
+    if (!currentProjectId || !answers) return;
+    setCreatingDesigns(true);
+    try {
+      const roomItems = buildMoodboardRoomsFromScope(answers);
+      const rooms =
+        roomItems.length > 0
+          ? [...new Set(roomItems.map((r) => r.layoutId))]
+          : ["kitchen", "primary-bathroom", "living-family"];
+
+      const cdInput = buildCreativeDirectorInput(answers, { rooms });
+      const cdOutput = runCreativeDirector(cdInput);
+      const pmOutput = runProjectManagerSelection({ answers }, cdOutput);
+
+      const archetype = (scoreQuiz(answers as Record<string, string | string[]>).primaryArchetype ??
+        "provincial") as ArchetypeId;
+      const dna = STYLE_DNA[archetype];
+      const investmentRangeLabel =
+        resolveOne(answers, budgetIndex, "investment_range").label ?? "$200k–$350k";
+      const capacity = getBudgetCapacityPoints(answers);
+      const complexity = computeComplexityPoints(answers);
+      const budgetStatus = capacity
+        ? computeBudgetFit(complexity, capacity, answers)
+        : "comfortable";
+      const styleDNATitle = ["Tonal", "Curated", dna.label].join(" ");
+
+      let styleReasoningBySlot: Record<string, string> = {};
+      let summaryBlocks: { title: string; body: string }[] | undefined;
+      try {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+        const res = await fetch("/api/design-concept/render-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            selectionsBySlot: Object.fromEntries(
+              Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
+                k,
+                {
+                  product: {
+                    title: v.product.title,
+                    material: v.product.material,
+                    finish: v.product.finish,
+                    slotId: v.product.slotId,
+                  },
+                  scopeReasoning: v.scopeReasoning,
+                },
+              ])
+            ),
+            styleContext: {
+              primaryArchetype: archetype,
+              essence: dna.essence,
+              signatureNotes: dna.signatureNotes ?? [],
+              settingVibe: dna.settingVibe,
+            },
+            summaryContext: {
+              investmentRangeLabel,
+              budgetStatus: budgetStatus ?? "comfortable",
+              styleDNATitle,
+              strategicTradeoffsSummary:
+                pmOutput.professionalReasoning?.length > 0
+                  ? pmOutput.professionalReasoning.join(" ")
+                  : "Selections aligned to scope and budget. See the Decision Detail table below for specifics.",
+            },
+          }),
+          signal: controller.signal,
+        });
+        window.clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = (await res.json()) as {
+            styleReasoningBySlot?: Record<string, string>;
+            summaryBlocks?: { title: string; body: string }[];
+          };
+          styleReasoningBySlot = data.styleReasoningBySlot ?? {};
+          summaryBlocks = data.summaryBlocks;
+        }
+      } catch (llmErr) {
+        console.warn("LLM render-text failed, using fallback:", llmErr);
+      }
+
+      const mergedSelectionsBySlot = { ...pmOutput.selectionsBySlot };
+      for (const [slotKey, reasoning] of Object.entries(styleReasoningBySlot)) {
+        if (mergedSelectionsBySlot[slotKey]) {
+          mergedSelectionsBySlot[slotKey] = {
+            ...mergedSelectionsBySlot[slotKey],
+            styleReasoning: reasoning,
+          };
+        }
+      }
+      const mergedSelections = pmOutput.selections.map((sel) => {
+        const slotKey = Object.entries(pmOutput.selectionsBySlot).find(
+          ([_, v]) => v.product.id === sel.product.id
+        )?.[0];
+        const reasoning = slotKey ? styleReasoningBySlot[slotKey] : undefined;
+        return reasoning ? { ...sel, styleReasoning: reasoning } : sel;
+      });
+
+      setDesignConceptOutput(currentProjectId, {
+        pmOutput: {
+          ...pmOutput,
+          selectionsBySlot: mergedSelectionsBySlot,
+          selections: mergedSelections,
+        },
+        summaryBlocks,
+      });
+      setDesignsCreated(currentProjectId, true);
+      router.push("/designconcept");
+    } catch (err) {
+      console.error("Create Designs pipeline failed:", err);
+      window.alert("Something went wrong generating designs. Please try again.");
+    } finally {
+      setCreatingDesigns(false);
+      setConfirmCreateOpen(false);
+    }
+  }
 
   // Exterior
   const exteriorId = first(answers, "home_exterior_style");
@@ -618,15 +745,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
               </button>
             ) : (
               <button
-                onClick={() => {
-                  if (!currentProjectId) return;
-                  const confirmed = window.confirm(
-                    "Are you sure? This step locks in your project plan and moves to the design phase. You will not be able to edit your project plan once you do this."
-                  );
-                  if (!confirmed) return;
-                  setDesignsCreated(currentProjectId, true);
-                  router.push("/designconcept");
-                }}
+                onClick={() => setConfirmCreateOpen(true)}
                 className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
               >
                 Create Designs
@@ -634,6 +753,35 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
             )}
           </div>
         </section>
+
+        {confirmCreateOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-lg rounded-2xl bg-[#F8F5EE] border border-black/10 p-6 shadow-xl">
+              <h3 className="font-[var(--font-playfair)] text-lg text-black">Create designs?</h3>
+              <p className="mt-2 text-sm text-black/70 leading-relaxed">
+                This step locks in your project plan and moves to the design phase. You will not be able to edit your project plan once you do this.
+              </p>
+              <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => !creatingDesigns && setConfirmCreateOpen(false)}
+                  className="text-xs md:text-sm px-5 py-2 rounded-full border border-black/20 bg-transparent hover:bg-black/5 transition"
+                  disabled={creatingDesigns}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateDesigns}
+                  className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={creatingDesigns}
+                >
+                  {creatingDesigns ? "Creating…" : "Yes, create designs"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
         </div>
       </div>
     </main>

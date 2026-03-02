@@ -178,6 +178,8 @@ export interface SelectedProduct {
   product: ProductCandidate;
   /** Human-readable Scope column text for Decision Details table */
   scopeReasoning: string;
+  /** Optional LLM-generated style reasoning for Decision Details (Style column) */
+  styleReasoning?: string;
 }
 
 /**

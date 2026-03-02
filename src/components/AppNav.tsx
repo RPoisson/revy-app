@@ -72,7 +72,7 @@ export function AppNav() {
   if (pathname === "/login") return null;
 
   return (
-    <header className="bg-white border-b border-black/5">
+    <header className="relative z-40 bg-white border-b border-black/5">
       {/* Top white space — marketing style like studiorevy.com */}
       <div className="h-4 md:h-6" aria-hidden />
 
