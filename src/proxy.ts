@@ -4,6 +4,10 @@ import { updateSession } from '@/lib/supabase/middleware';
 
 const publicPaths = ['/login', '/auth/callback', '/auth/confirm'];
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+const supabaseAuthEnabled =
+  process.env.SUPABASE_AUTH_ENABLED === "true" &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 function isPublicPath(pathname: string): boolean {
   const path = pathname.replace(new RegExp(`^${basePath}`), '') || '/';
@@ -21,9 +25,12 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Supabase auth: refresh session and enforce login on protected routes
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  // NOTE: gated behind SUPABASE_AUTH_ENABLED to avoid slowing every request until auth is ready.
+  if (supabaseAuthEnabled) {
+    if (pathname.startsWith('/_next') || pathname.startsWith('/api/')) {
+      return NextResponse.next();
+    }
     const { response, user } = await updateSession(request);
-    if (pathname.startsWith('/_next') || pathname.startsWith('/api/')) return response;
     if (isPublicPath(pathname)) return response;
     if (!user) {
       const redirect = redirectToLogin(request);
@@ -56,6 +63,7 @@ export const config = {
    * 2. This ensures the browser can always load CSS even if the user is NOT logged in.
    */
   matcher: [
-    '/((?!api/auth|_next|static|favicon.ico).*)',
+    // Exclude common static assets (anything with a dot extension) so images/fonts aren't redirected.
+    '/((?!api/auth|_next|static|favicon.ico|.*\\..*).*)',
   ],
 };
