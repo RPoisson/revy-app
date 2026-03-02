@@ -14,12 +14,11 @@ import { useAnswers } from "@/context/AnswersContext";
 
 export default function BudgetPage() {
   const router = useRouter();
-  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { currentProjectId } = useProjects();
   const { getAnswers, saveAnswers } = useAnswers();
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({});
-  const [locked, setLocked] = useState(false);
 
   const total = BUDGET_QUESTIONS.length;
   const question = BUDGET_QUESTIONS[step];
@@ -29,7 +28,6 @@ export default function BudgetPage() {
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
-    setLocked(getDesignsCreated(currentProjectId ?? undefined));
   }, [currentProjectId, getAnswers]);
 
   useEffect(() => {
@@ -41,7 +39,6 @@ export default function BudgetPage() {
   }, [step]);
 
   function toggleOption(q: Question, optionId: string) {
-    if (locked) return;
     setAnswers((prev) => {
       const current = prev[q.id] ?? [];
       if (q.allowMultiple) {
@@ -67,18 +64,15 @@ export default function BudgetPage() {
   }
 
   function handleExit() {
-    if (!locked) {
-      clearAnswers(currentProjectId ?? undefined);
-    }
+    clearAnswers(currentProjectId ?? undefined);
     router.push("/");
   }
 
   const canGoNext = useMemo(() => {
     if (!question) return false;
-    if (locked) return true;
     const current = answers[question.id] ?? [];
     return question.required ? current.length > 0 : true;
-  }, [answers, question, locked]);
+  }, [answers, question]);
 
   if (!question) {
     return (
@@ -146,7 +140,7 @@ export default function BudgetPage() {
             selected={answers[question.id] ?? []}
             onSelect={toggleOption}
             answers={answers}
-            readOnly={locked}
+            readOnly={false}
           />
         </section>
 
