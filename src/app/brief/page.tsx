@@ -428,6 +428,9 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
       let styleReasoningBySlot: Record<string, string> = {};
       let summaryBlocks: { title: string; body: string }[] | undefined;
       try {
+        // Call LLM endpoint with a hard timeout so the UI never hangs indefinitely.
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 10000); // 10s budget
         const res = await fetch("/api/design-concept/render-text", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -462,7 +465,9 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
                   : "Selections aligned to scope and budget. See the Decision Detail table below for specifics.",
             },
           }),
+          signal: controller.signal,
         });
+        window.clearTimeout(timeoutId);
         if (res.ok) {
           const data = (await res.json()) as {
             styleReasoningBySlot?: Record<string, string>;
