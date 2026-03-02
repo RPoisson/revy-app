@@ -14,12 +14,12 @@ import { RoomSelector } from "./RoomSelector";
 import { MoodboardCanvasView } from "./MoodboardCanvasView";
 import { SectionHeader, CARD_STYLE } from "./components/SectionHeader";
 import { useProjects } from "@/context/ProjectContext";
-import { useAnswers } from "@/context/AnswersContext";
-import { buildMoodboardRoomsFromScope, type MoodboardRoomItem } from "./buildMoodboardRooms";
+import { getDesignsCreated } from "@/lib/designsCreatedStore";
+import { getAnswers, type QuizAnswers } from "@/app/quiz/lib/answersStore";
 import { getDesignConceptOutput } from "@/lib/designConceptStore";
+import { buildMoodboardRoomsFromScope, type MoodboardRoomItem } from "./buildMoodboardRooms";
 import { scoreQuiz } from "@/app/scoring";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
-import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 
 const PLACEHOLDER_ARCHETYPE: ArchetypeId = "provincial";
 const PLACEHOLDER_INVESTMENT_LABEL = "$200k–$350k";
@@ -34,18 +34,17 @@ function getInvestmentRangeLabel(answers: QuizAnswers): string {
 
 /** Rooms to show in selector: from scope (custom/default names) or fallback to ALL_ROOMS. */
 function useMoodboardRoomsList(designsCreated: boolean, projectId: string | undefined) {
-  const { getAnswers } = useAnswers();
   return useMemo(() => {
     if (!designsCreated) return ALL_ROOMS;
     const answers = getAnswers(projectId);
-    const scopeRooms = buildMoodboardRoomsFromScope(answers);
+    const scopeRooms = buildMoodboardRoomsFromScope(answers ?? {});
     if (scopeRooms.length > 0) return scopeRooms;
     return ALL_ROOMS;
-  }, [designsCreated, projectId, getAnswers]);
+  }, [designsCreated, projectId]);
 }
 
 export default function DesignConceptPage() {
-  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { currentProjectId } = useProjects();
   const designsCreated = getDesignsCreated(currentProjectId);
   const roomsList = useMoodboardRoomsList(designsCreated, currentProjectId ?? undefined);
 
@@ -60,11 +59,10 @@ export default function DesignConceptPage() {
     if (!ids.has(selectedRoomId)) setSelectedRoomId(firstId);
   }, [roomsList, selectedRoomId, firstId]);
 
-  const { getAnswers } = useAnswers();
   const agentOutput = getDesignConceptOutput(currentProjectId ?? undefined);
   const answers = useMemo(
-    () => getAnswers(currentProjectId ?? undefined),
-    [currentProjectId, getAnswers]
+    () => getAnswers(currentProjectId ?? undefined) ?? undefined,
+    [currentProjectId]
   );
 
   const data: DesignConceptDetail = useMemo(() => {
