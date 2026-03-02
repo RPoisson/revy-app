@@ -306,11 +306,15 @@ export default function BriefPage() {
       let styleReasoningBySlot: Record<string, string> = {};
       let summaryBlocks: { title: string; body: string }[] | undefined;
       try {
+        console.info("[Revy] Calling LLM API: POST /api/design-concept/render-text");
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), 10000);
         const res = await fetch("/api/design-concept/render-text", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Revy-Request": "render-text",
+          },
           body: JSON.stringify({
             selectionsBySlot: Object.fromEntries(
               Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
@@ -523,7 +527,15 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
   })();
 
   async function runCreateDesignsFlow() {
-    if (!currentProjectId || !answers) return;
+    console.info("[Revy] runCreateDesignsFlow called", {
+      currentProjectId: currentProjectId ?? "(null)",
+      hasAnswers: !!answers,
+      answersKeys: answers ? Object.keys(answers).length : 0,
+    });
+    if (!currentProjectId || !answers) {
+      console.warn("[Revy] Exiting early: missing currentProjectId or answers");
+      return;
+    }
     setCreatingDesigns(true);
     try {
       const roomItems = buildMoodboardRoomsFromScope(answers);
@@ -551,12 +563,16 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
       let styleReasoningBySlot: Record<string, string> = {};
       let summaryBlocks: { title: string; body: string }[] | undefined;
       try {
+        console.info("[Revy] Calling LLM API: POST /api/design-concept/render-text");
         // Call LLM endpoint with a hard timeout so the UI never hangs indefinitely.
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), 10000); // 10s budget
         const res = await fetch("/api/design-concept/render-text", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Revy-Request": "render-text",
+          },
           body: JSON.stringify({
             selectionsBySlot: Object.fromEntries(
               Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
