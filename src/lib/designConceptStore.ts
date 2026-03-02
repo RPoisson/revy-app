@@ -7,6 +7,8 @@ export interface DesignConceptOutput {
   pmOutput: ProjectManagerSelectionOutput;
   /** LLM-generated executive summary blocks (when available) */
   summaryBlocks?: { title: string; body: string }[];
+  /** Investment range label from quiz when designs were created (so summary is never hardcoded) */
+  investmentRangeLabel?: string;
 }
 
 const STORAGE_KEY = "revy.designConceptOutput.v2";
@@ -41,6 +43,7 @@ function load(): Record<string, DesignConceptOutput> {
         out[k] = {
           pmOutput: obj.pmOutput as ProjectManagerSelectionOutput,
           summaryBlocks: Array.isArray(obj.summaryBlocks) ? obj.summaryBlocks as { title: string; body: string }[] : undefined,
+          investmentRangeLabel: typeof obj.investmentRangeLabel === "string" ? obj.investmentRangeLabel : undefined,
         };
       } else if ("selectionsBySlot" in obj) {
         out[k] = { pmOutput: obj as unknown as ProjectManagerSelectionOutput };

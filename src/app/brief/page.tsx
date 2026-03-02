@@ -381,6 +381,7 @@ export default function BriefPage() {
           selections: mergedSelections,
         },
         summaryBlocks,
+        investmentRangeLabel,
       });
       setDesignsCreated(currentProjectId, true);
       router.push("/designconcept");
@@ -620,6 +621,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
           selections: mergedSelections,
         },
         summaryBlocks,
+        investmentRangeLabel,
       });
       setDesignsCreated(currentProjectId, true);
       router.push("/designconcept");

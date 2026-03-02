@@ -66,10 +66,16 @@ export default function DesignConceptPage() {
   );
 
   const data: DesignConceptDetail = useMemo(() => {
-    const investmentLabel = answers ? getInvestmentRangeLabel(answers) : PLACEHOLDER_INVESTMENT_LABEL;
+    // Use stored range from when designs were created, then quiz answers, then placeholder
+    const investmentLabel =
+      agentOutput?.investmentRangeLabel ??
+      (answers ? getInvestmentRangeLabel(answers) : undefined) ??
+      PLACEHOLDER_INVESTMENT_LABEL;
     const pmOutput = agentOutput?.pmOutput;
-    if (designsCreated && pmOutput && answers && Object.keys(pmOutput.selectionsBySlot).length > 0) {
-      const styleResult = scoreQuiz(answers as Record<string, string | string[]>);
+    if (designsCreated && pmOutput && Object.keys(pmOutput.selectionsBySlot).length > 0) {
+      const styleResult = answers
+        ? scoreQuiz(answers as Record<string, string | string[]>)
+        : { primaryArchetype: PLACEHOLDER_ARCHETYPE };
       const archetype = (styleResult.primaryArchetype ?? PLACEHOLDER_ARCHETYPE) as ArchetypeId;
       return buildDesignConceptFromAgentOutput(pmOutput, {
         archetype,

@@ -94,6 +94,9 @@ function parseSummaryBlocksResponse(content: string): { title: string; body: str
 }
 
 export async function POST(request: Request) {
+  if (!process.env.OPENAI_API_KEY?.trim()) {
+    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+  }
   try {
     const body = (await request.json()) as {
       selectionsBySlot?: Record<string, SelectionPayload>;
