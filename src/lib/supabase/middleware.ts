@@ -2,6 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { User } from "@supabase/supabase-js";
 
+type CookieToSet = { name: string; value: string; options?: Record<string, unknown> };
+
 export async function updateSession(request: NextRequest): Promise<{
   response: NextResponse;
   user: User | null;
@@ -18,9 +20,10 @@ export async function updateSession(request: NextRequest): Promise<{
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            response.cookies.set(name, value)
+        setAll(cookiesToSet: CookieToSet[]) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            // next/headers cookie options shape is compatible with supabase cookie options
+            response.cookies.set(name, value, options as any)
           );
         },
       },

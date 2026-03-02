@@ -11,7 +11,8 @@ type ProjectRow = {
   created_at: string;
   organization_id: string;
   user_id: string;
-  organizations: { name: string } | null;
+  // Supabase join may return an array depending on relationship config
+  organizations: { name: string } | { name: string }[] | null;
 };
 
 const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
@@ -36,7 +37,7 @@ export default function AdminSupportPage() {
       .select("id, name, status, created_at, organization_id, user_id, organizations(name)")
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
-        if (!error && data) setProjects((data as ProjectRow[]));
+        if (!error && data) setProjects(data as unknown as ProjectRow[]);
         setLoading(false);
       });
   }, []);
@@ -46,7 +47,11 @@ export default function AdminSupportPage() {
     if (searchOrg.trim()) {
       const q = searchOrg.trim().toLowerCase();
       list = list.filter(
-        (p) => p.organizations?.name?.toLowerCase().includes(q)
+        (p) => {
+          const org = p.organizations;
+          const names = Array.isArray(org) ? org.map((o) => o?.name).filter(Boolean) : [org?.name].filter(Boolean);
+          return names.some((n) => String(n).toLowerCase().includes(q));
+        }
       );
     }
     if (searchAccount.trim()) {
@@ -114,7 +119,11 @@ export default function AdminSupportPage() {
             {filtered.map((p) => (
               <tr key={p.id} className="border-b border-black/5 hover:bg-black/[0.02]">
                 <td className="px-4 py-3 text-black">{p.name}</td>
-                <td className="px-4 py-3 text-black/70">{p.organizations?.name ?? "—"}</td>
+                <td className="px-4 py-3 text-black/70">
+                  {Array.isArray(p.organizations)
+                    ? (p.organizations[0]?.name ?? "—")
+                    : (p.organizations?.name ?? "—")}
+                </td>
                 <td className="px-4 py-3 font-mono text-xs text-black/60 truncate max-w-[140px]">{p.user_id}</td>
                 <td className="px-4 py-3 text-black/70">{p.status}</td>
                 <td className="px-4 py-3 text-black/60">

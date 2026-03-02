@@ -49,7 +49,8 @@ export async function createProject(
   const orgId = await getPersonalOrgId(supabase);
   if (!orgId) return null;
 
-  const { data: user } = (await supabase.auth.getUser()).data;
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user ?? null;
   if (!user) return null;
 
   const { data, error } = await supabase

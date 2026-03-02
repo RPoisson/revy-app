@@ -8,6 +8,7 @@ import { scoreQuiz, Answers as ScoringAnswers } from "@/app/scoring";
 import { generateResultText, GeneratedResultText } from "@/app/resultText";
 import QuestionOptions from "@/app/quiz/components/QuestionOptions";
 import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
+import { clearAnswers } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
 import { useAnswers } from "@/context/AnswersContext";
 

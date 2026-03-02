@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { StudioLogo } from "@/components/StudioLogo";
 import { createClient } from "@/lib/supabase/client";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
-export default function LoginPage() {
+function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || searchParams.get("next") || "/";
@@ -317,5 +317,24 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#F8F5EE] text-neutral-900 flex items-center justify-center px-4">
+          <div className="w-full max-w-md space-y-6 text-center">
+            <div className="flex justify-center">
+              <StudioLogo className="text-black/70" />
+            </div>
+            <p className="text-sm text-black/70 leading-relaxed">Loading…</p>
+          </div>
+        </main>
+      }
+    >
+      <LoginInner />
+    </Suspense>
   );
 }

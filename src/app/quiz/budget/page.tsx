@@ -8,6 +8,7 @@ import type { Question } from "@/questions";
 import QuestionOptions from "@/app/quiz/components/QuestionOptions";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
 import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
+import { clearAnswers } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
 import { useAnswers } from "@/context/AnswersContext";
 
