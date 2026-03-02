@@ -344,7 +344,7 @@ export default function ScopePage() {
   }
 
   return (
-    <main className="min-h-screen flex justify-center px-4 py-4 md:py-10">
+    <main className="min-h-screen flex justify-center px-4 py-4 md:py-10" data-quiz-step="scope">
       <div className="w-full max-w-md md:max-w-xl flex flex-col gap-6">
         {/* Context */}
         <section className="space-y-2">

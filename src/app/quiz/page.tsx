@@ -55,7 +55,7 @@ function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
 
 export default function QuizPage() {
   const router = useRouter();
-  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { currentProjectId } = useProjects();
   const { getAnswers, saveAnswers } = useAnswers();
 
   const [mounted, setMounted] = useState(false);
@@ -66,7 +66,6 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<QuizAnswers>({});
 
   const [completed, setCompleted] = useState(false);
-  const [locked] = useState(false);
 
   // Popover state for final CTA info (mobile + desktop tap)
   const [infoOpen, setInfoOpen] = useState(false);
@@ -84,9 +83,9 @@ export default function QuizPage() {
   }, [currentProjectId]);
 
   useEffect(() => {
-    if (!mounted || locked) return;
+    if (!mounted) return;
     saveAnswers(answers, currentProjectId ?? undefined);
-  }, [answers, mounted, currentProjectId, locked]);
+  }, [answers, mounted, currentProjectId]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -99,7 +98,6 @@ export default function QuizPage() {
   }, [step]);
 
   function toggleOption(q: Question, optionId: string) {
-    if (locked) return;
     setAnswers((prev) => {
       const current = prev[q.id] ?? [];
       let updated: QuizAnswers;
@@ -135,9 +133,7 @@ export default function QuizPage() {
   }
 
   function handleExit() {
-    if (!locked) {
-      clearAnswers(currentProjectId ?? undefined);
-    }
+    clearAnswers(currentProjectId ?? undefined);
     router.push("/");
   }
 
@@ -148,10 +144,9 @@ export default function QuizPage() {
 
   const canGoNext = useMemo(() => {
     if (!question) return false;
-    if (locked) return true;
     const current = answers[question.id] ?? [];
     return question.required ? current.length > 0 : true;
-  }, [answers, question, locked]);
+  }, [answers, question]);
 
   // ✅ Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
@@ -291,7 +286,7 @@ export default function QuizPage() {
             selected={answers[question!.id] ?? []}
             onSelect={toggleOption}
             answers={answers}
-            readOnly={locked}
+            readOnly={false}
           />
         </section>
 
