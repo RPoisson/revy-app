@@ -885,14 +885,20 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
             </button>
             {hasDesigns ? (
               <button
-                onClick={() => router.push("/designconcept")}
+                onClick={() => {
+                  console.info("[Revy] 'See Designs' clicked — navigating only (no API call). To trigger LLM, use a project that has not created designs yet.");
+                  router.push("/designconcept");
+                }}
                 className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
               >
                 See Designs
               </button>
             ) : (
               <button
-                onClick={() => setConfirmCreateOpen(true)}
+                onClick={() => {
+                  console.info("[Revy] 'Create Designs' clicked — modal should open. Click 'Yes, create designs' in the modal to run the flow.");
+                  setConfirmCreateOpen(true);
+                }}
                 className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
               >
                 Create Designs
@@ -919,7 +925,10 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
                 </button>
                 <button
                   type="button"
-                  onClick={runCreateDesignsFlow}
+                  onClick={() => {
+                    console.info("[Revy] 'Yes, create designs' clicked — running runCreateDesignsFlow now.");
+                    runCreateDesignsFlow();
+                  }}
                   className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
                   disabled={creatingDesigns}
                 >
