@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
 
-const publicPaths = ['/login', '/auth/callback', '/auth/confirm'];
+// Legacy auth-only middleware: single shared password via "auth" cookie.
+// Supabase auth is intentionally disabled until the product is ready for it.
+const publicPaths = ['/login'];
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-const supabaseAuthEnabled =
-  process.env.SUPABASE_AUTH_ENABLED === "true" &&
-  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 function isPublicPath(pathname: string): boolean {
   const path = pathname.replace(new RegExp(`^${basePath}`), '') || '/';
@@ -23,22 +20,6 @@ function redirectToLogin(request: NextRequest) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Supabase auth: refresh session and enforce login on protected routes
-  // NOTE: gated behind SUPABASE_AUTH_ENABLED to avoid slowing every request until auth is ready.
-  if (supabaseAuthEnabled) {
-    if (pathname.startsWith('/_next') || pathname.startsWith('/api/')) {
-      return NextResponse.next();
-    }
-    const { response, user } = await updateSession(request);
-    if (isPublicPath(pathname)) return response;
-    if (!user) {
-      const redirect = redirectToLogin(request);
-      response.cookies.getAll().forEach((c) => redirect.cookies.set(c.name, c.value));
-      return redirect;
-    }
-    return response;
-  }
 
   // Legacy: single shared password via "auth" cookie
   const authCookie = request.cookies.get('auth');

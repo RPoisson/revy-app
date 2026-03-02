@@ -1,8 +1,5 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 export default function AdminLayout({
@@ -10,45 +7,6 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [allowed, setAllowed] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ) {
-      setAllowed(false);
-      return;
-    }
-    const supabase = createClient();
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setAllowed(false);
-        return;
-      }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      const isAdmin = profile?.role === "platform_admin";
-      setAllowed(isAdmin);
-      if (!isAdmin) router.replace("/");
-    })();
-  }, [router]);
-
-  if (allowed === null) {
-    return (
-      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <p className="text-sm text-black/60">Checking access…</p>
-      </main>
-    );
-  }
-  if (!allowed) return null;
-
   const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -70,7 +28,12 @@ export default function AdminLayout({
           </nav>
         </div>
       </header>
-      {children}
+      <main className="max-w-6xl mx-auto px-4 py-10 space-y-4">
+        <h2 className="font-[var(--font-playfair)] text-lg text-black">Admin is disabled</h2>
+        <p className="text-sm text-black/60">
+          Admin tools are disabled until Supabase auth + database are enabled for the product.
+        </p>
+      </main>
     </div>
   );
 }

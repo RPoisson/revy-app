@@ -4,16 +4,14 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
 
 type AuthContextValue = {
-  user: User | null;
+  // Auth is intentionally disabled until the product is ready for Supabase.
+  user: null;
   loading: boolean;
   refresh: () => Promise<void>;
 };
@@ -21,53 +19,16 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabaseEnabled =
-    typeof window !== "undefined" &&
-    process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLED === "true" &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (!supabaseEnabled) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const supabase = createClient();
-      const {
-        data: { user: u },
-      } = await supabase.auth.getUser();
-      setUser(u);
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+    // No-op until Supabase auth is enabled.
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!supabaseEnabled) {
-      setLoading(false);
-      return;
-    }
-    const supabase = createClient();
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      refresh();
-    });
-    return () => subscription.unsubscribe();
-  }, [refresh]);
-
   const value = useMemo(
-    () => ({ user, loading, refresh }),
-    [user, loading, refresh]
+    () => ({ user: null, loading, refresh }),
+    [loading, refresh]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

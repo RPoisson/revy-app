@@ -3,9 +3,6 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { StudioLogo } from "@/components/StudioLogo";
-import { createClient } from "@/lib/supabase/client";
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 function LoginInner() {
   const router = useRouter();
@@ -13,96 +10,10 @@ function LoginInner() {
   const redirect = searchParams.get("redirect") || searchParams.get("next") || "/";
   const errorParam = searchParams.get("error");
 
-  const [email, setEmail] = useState("");
-  const [otpToken, setOtpToken] = useState("");
-  const [step, setStep] = useState<"email" | "otp" | "success">("email");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
-  const useSupabase =
-    typeof window !== "undefined" &&
-    process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLED === "true" &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!useSupabase || !email.trim()) return;
-    setLoading(true);
-    setError("");
-    setMessage("");
-    try {
-      const supabase = createClient();
-      const callbackUrl = `${window.location.origin}${basePath}/auth/callback?redirect=${encodeURIComponent(redirect)}`;
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: { emailRedirectTo: callbackUrl },
-      });
-      if (err) {
-        setError(err.message);
-        setLoading(false);
-        return;
-      }
-      setMessage("Check your email for the sign-in link.");
-      setStep("success");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    }
-    setLoading(false);
-  };
-
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!useSupabase || !email.trim()) return;
-    setLoading(true);
-    setError("");
-    setMessage("");
-    try {
-      const supabase = createClient();
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: { shouldCreateUser: true },
-      });
-      if (err) {
-        setError(err.message);
-        setLoading(false);
-        return;
-      }
-      setMessage("Check your email for the 6-digit code.");
-      setStep("otp");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    }
-    setLoading(false);
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!useSupabase || !otpToken.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      const supabase = createClient();
-      const { error: err } = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: otpToken.trim(),
-        type: "email",
-      });
-      if (err) {
-        setError(err.message);
-        setLoading(false);
-        return;
-      }
-      router.push(redirect);
-      router.refresh();
-    } catch {
-      setError("Invalid or expired code. Please try again.");
-    }
-    setLoading(false);
-  };
-
-  // Legacy password auth when Supabase is not configured
+  // Password-only auth (Supabase intentionally disabled for now)
   const [password, setPassword] = useState("");
   const handleLegacySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,8 +37,7 @@ function LoginInner() {
     setLoading(false);
   };
 
-  if (!useSupabase) {
-    return (
+  return (
       <main className="min-h-screen bg-[#F8F5EE] text-neutral-900 flex items-center justify-center px-4">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-3">
@@ -179,8 +89,8 @@ function LoginInner() {
         </div>
       </main>
     );
-  }
 
+  /*
   return (
     <main className="min-h-screen bg-[#F8F5EE] text-neutral-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
@@ -319,6 +229,7 @@ function LoginInner() {
       </div>
     </main>
   );
+  */
 }
 
 export default function LoginPage() {
