@@ -23,13 +23,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabaseEnabled =
+    typeof window !== "undefined" &&
+    process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLED === "true" &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const refresh = useCallback(async () => {
-    if (
-      typeof window === "undefined" ||
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ) {
+    if (!supabaseEnabled) {
       setLoading(false);
       return;
     }
@@ -51,10 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useEffect(() => {
-    if (
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ) {
+    if (!supabaseEnabled) {
       setLoading(false);
       return;
     }

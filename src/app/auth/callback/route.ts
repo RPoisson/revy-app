@@ -6,6 +6,12 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? searchParams.get("redirect") ?? "/";
 
+  // If Supabase auth isn't enabled, treat callback as invalid and return to login.
+  if (process.env.SUPABASE_AUTH_ENABLED !== "true") {
+    const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+    return NextResponse.redirect(`${origin}${base}/login?error=auth`);
+  }
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

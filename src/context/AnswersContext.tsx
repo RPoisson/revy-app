@@ -36,10 +36,13 @@ export function AnswersProvider({ children }: { children: ReactNode }) {
   const [cache, setCache] = useState<Record<string, QuizAnswers>>({});
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
 
-  const useSupabaseForAnswers =
-    !!user &&
+  const supabaseEnabled =
+    process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLED === "true" &&
     !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const useSupabaseForAnswers =
+    supabaseEnabled && !!user;
 
   const loadAnswersFromSupabase = useCallback(async (projectId: string) => {
     if (!useSupabaseForAnswers) return;

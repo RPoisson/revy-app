@@ -55,11 +55,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
 
-  const useSupabase =
+  const supabaseEnabled =
     typeof window !== "undefined" &&
-    !!user &&
+    process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLED === "true" &&
     !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const useSupabase =
+    supabaseEnabled && !!user;
 
   const refresh = useCallback(async () => {
     if (useSupabase && user) {

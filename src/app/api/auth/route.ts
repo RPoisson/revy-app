@@ -7,7 +7,11 @@ import { createClient } from "@/lib/supabase/server";
 const AUTH_COOKIE = "auth";
 
 export async function GET() {
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (
+    process.env.SUPABASE_AUTH_ENABLED === "true" &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
