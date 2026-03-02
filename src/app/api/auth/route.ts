@@ -11,7 +11,8 @@ export async function GET() {
   if (auth?.value === "true") {
     return NextResponse.json({ loggedIn: true });
   }
-  return NextResponse.json({ loggedIn: false }, { status: 401 });
+  // Return 200 so the nav auth check doesn't show a 401 in the console when not logged in
+  return NextResponse.json({ loggedIn: false });
 }
 
 export async function POST(request: Request) {
