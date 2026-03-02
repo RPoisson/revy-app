@@ -7,16 +7,17 @@ import { useRouter } from "next/navigation";
 import type { Question } from "@/questions";
 import QuestionOptions from "@/app/quiz/components/QuestionOptions";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
-import { getAnswers, saveAnswers, clearAnswers, QuizAnswers } from "@/app/quiz/lib/answersStore";
+import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
-import { getDesignsCreated } from "@/lib/designsCreatedStore";
+import { useAnswers } from "@/context/AnswersContext";
 
 export default function BudgetPage() {
   const router = useRouter();
-  const { currentProjectId } = useProjects();
+  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { getAnswers, saveAnswers } = useAnswers();
 
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<QuizAnswers>(() => getAnswers(currentProjectId ?? undefined));
+  const [answers, setAnswers] = useState<QuizAnswers>({});
   const [locked, setLocked] = useState(false);
 
   const total = BUDGET_QUESTIONS.length;
@@ -28,7 +29,7 @@ export default function BudgetPage() {
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
     setLocked(getDesignsCreated(currentProjectId ?? undefined));
-  }, [currentProjectId]);
+  }, [currentProjectId, getAnswers]);
 
   useEffect(() => {
     saveAnswers(answers, currentProjectId ?? undefined);

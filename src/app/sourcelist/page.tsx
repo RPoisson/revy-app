@@ -12,7 +12,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ProjectRequiredGuard } from "@/components/ProjectRequiredGuard";
 import { useProjects } from "@/context/ProjectContext";
-import { getDesignsCreated } from "@/lib/designsCreatedStore";
 import {
   getPlaceholderSourceList,
   type SourceItem,
@@ -29,7 +28,7 @@ const formatCurrency = (n: number) =>
   }).format(n);
 
 export default function SourceListPage() {
-  const { currentProjectId } = useProjects();
+  const { currentProjectId, getDesignsCreated } = useProjects();
   const designsCreated = getDesignsCreated(currentProjectId);
   // Replace with API/DB fetch when ready; data can be built from design concept + DB specs
   const allItems: SourceItem[] = useMemo(() => getPlaceholderSourceList(), []);

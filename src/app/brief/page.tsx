@@ -4,12 +4,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import {
-  getAnswers,
-  QuizAnswers,
-} from "@/app/quiz/lib/answersStore";
-import { getDesignsCreated, setDesignsCreated } from "@/lib/designsCreatedStore";
+import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
+import { useAnswers } from "@/context/AnswersContext";
 import { ProjectRequiredGuard } from "@/components/ProjectRequiredGuard";
 import { scoreQuiz } from "@/app/scoring";
 import { generateResultText } from "@/app/resultText";
@@ -39,6 +36,15 @@ import {
   computeComplexityPoints,
   getBudgetCapacityPoints,
 } from "@/app/brief/budgetHeuristics";
+
+// CD → PM pipeline (run when user clicks "Create Designs")
+import { buildCreativeDirectorInput } from "@/app/agents/buildCreativeDirectorInput";
+import { runCreativeDirector } from "@/app/agents/creativeDirectorAgent";
+import { runProjectManagerSelection } from "@/app/agents/projectManagerSelection";
+import { buildMoodboardRoomsFromScope } from "@/app/designconcept/buildMoodboardRooms";
+import { setDesignConceptOutput } from "@/lib/designConceptStore";
+import type { ArchetypeId } from "@/app/style/styleDNA";
+import { STYLE_DNA } from "@/app/style/styleDNA";
 
 function first(answers: QuizAnswers, key: string): string | undefined {
   const v = answers[key];
@@ -225,14 +231,17 @@ function evalSimpleTrigger(expr: string, ctx: Record<string, any>): boolean {
 
 export default function BriefPage() {
   const router = useRouter();
-  const { currentProjectId } = useProjects();
+  const { currentProjectId, getDesignsCreated, setDesignsCreated } = useProjects();
+  const { getAnswers, loadingProjectId } = useAnswers();
 
   const [answers, setAnswers] = useState<QuizAnswers | null>(null);
   const [hasDesigns, setHasDesigns] = useState(false);
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
-  }, [currentProjectId]);
+  }, [currentProjectId, getAnswers]);
+
+  const answersLoading = !!loadingProjectId && loadingProjectId === currentProjectId;
 
   useEffect(() => {
     if (!currentProjectId) {
@@ -248,8 +257,8 @@ export default function BriefPage() {
   // ✅ Master index built from src/questions.ts so we can resolve material_palette (and any future global questions)
   const masterIndex = useMemo(() => buildLabelIndex(QUESTIONS), []);
 
-  // 1) First paint: stable loading state
-  if (answers === null) {
+  // 1) First paint: stable loading state (or Supabase answers still loading)
+  if (answers === null || answersLoading) {
     return (
       <main className="min-h-screen flex justify-center items-center px-4 py-10">
         <div className="w-full max-w-md text-center space-y-3">
@@ -618,14 +627,110 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
               </button>
             ) : (
               <button
-                onClick={() => {
-                  if (!currentProjectId) return;
+                onClick={async () => {
+                  if (!currentProjectId || !answers) return;
                   const confirmed = window.confirm(
                     "Are you sure? This step locks in your project plan and moves to the design phase. You will not be able to edit your project plan once you do this."
                   );
                   if (!confirmed) return;
-                  setDesignsCreated(currentProjectId, true);
-                  router.push("/designconcept");
+                  try {
+                    const roomItems = buildMoodboardRoomsFromScope(answers);
+                    const rooms = roomItems.length > 0
+                      ? [...new Set(roomItems.map((r) => r.layoutId))]
+                      : ["kitchen", "primary-bathroom", "living-family"];
+                    const cdInput = buildCreativeDirectorInput(answers, { rooms });
+                    const cdOutput = runCreativeDirector(cdInput);
+                    const pmOutput = runProjectManagerSelection({ answers }, cdOutput);
+
+                    const archetype = (scoreQuiz(answers as Record<string, string | string[]>).primaryArchetype ?? "provincial") as ArchetypeId;
+                    const dna = STYLE_DNA[archetype];
+                    const investmentRangeLabel = resolveOne(answers, budgetIndex, "investment_range").label ?? "$200k–$350k";
+                    const capacity = getBudgetCapacityPoints(answers);
+                    const complexity = computeComplexityPoints(answers);
+                    const budgetStatus = capacity ? computeBudgetFit(complexity, capacity, answers) : "comfortable";
+                    const styleDNATitle = ["Tonal", "Curated", dna.label].join(" ");
+
+                    let styleReasoningBySlot: Record<string, string> = {};
+                    let summaryBlocks: { title: string; body: string }[] | undefined;
+                    try {
+                      const res = await fetch("/api/design-concept/render-text", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          selectionsBySlot: Object.fromEntries(
+                            Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
+                              k,
+                              {
+                                product: {
+                                  title: v.product.title,
+                                  material: v.product.material,
+                                  finish: v.product.finish,
+                                  slotId: v.product.slotId,
+                                },
+                                scopeReasoning: v.scopeReasoning,
+                              },
+                            ])
+                          ),
+                          styleContext: {
+                            primaryArchetype: archetype,
+                            essence: dna.essence,
+                            signatureNotes: dna.signatureNotes ?? [],
+                            settingVibe: dna.settingVibe,
+                          },
+                          summaryContext: {
+                            investmentRangeLabel,
+                            budgetStatus: budgetStatus ?? "comfortable",
+                            styleDNATitle,
+                            strategicTradeoffsSummary:
+                              pmOutput.professionalReasoning?.length > 0
+                                ? pmOutput.professionalReasoning.join(" ")
+                                : "Selections aligned to scope and budget. See the Decision Detail table below for specifics.",
+                          },
+                        }),
+                      });
+                      if (res.ok) {
+                        const data = (await res.json()) as {
+                          styleReasoningBySlot?: Record<string, string>;
+                          summaryBlocks?: { title: string; body: string }[];
+                        };
+                        styleReasoningBySlot = data.styleReasoningBySlot ?? {};
+                        summaryBlocks = data.summaryBlocks;
+                      }
+                    } catch (llmErr) {
+                      console.warn("LLM render-text failed, using fallback:", llmErr);
+                    }
+
+                    const mergedSelectionsBySlot = { ...pmOutput.selectionsBySlot };
+                    for (const [slotKey, reasoning] of Object.entries(styleReasoningBySlot)) {
+                      if (mergedSelectionsBySlot[slotKey]) {
+                        mergedSelectionsBySlot[slotKey] = {
+                          ...mergedSelectionsBySlot[slotKey],
+                          styleReasoning: reasoning,
+                        };
+                      }
+                    }
+                    const mergedSelections = pmOutput.selections.map((sel) => {
+                      const slotKey = Object.entries(pmOutput.selectionsBySlot).find(
+                        ([_, v]) => v.product.id === sel.product.id
+                      )?.[0];
+                      const reasoning = slotKey ? styleReasoningBySlot[slotKey] : undefined;
+                      return reasoning ? { ...sel, styleReasoning: reasoning } : sel;
+                    });
+
+                    setDesignConceptOutput(currentProjectId, {
+                      pmOutput: {
+                        ...pmOutput,
+                        selectionsBySlot: mergedSelectionsBySlot,
+                        selections: mergedSelections,
+                      },
+                      summaryBlocks,
+                    });
+                    setDesignsCreated(currentProjectId, true);
+                    router.push("/designconcept");
+                  } catch (err) {
+                    console.error("Create Designs pipeline failed:", err);
+                    window.alert("Something went wrong generating designs. Please try again.");
+                  }
                 }}
                 className="text-xs md:text-sm px-6 py-2 rounded-full bg-black text-[#F8F5EE] hover:bg-black/90 transition"
               >

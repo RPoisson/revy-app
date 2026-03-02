@@ -2,7 +2,9 @@
 
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
 import { ProjectProvider } from "@/context/ProjectContext";
+import { AnswersProvider } from "@/context/AnswersContext";
 import { AppNav } from "@/components/AppNav";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
@@ -40,12 +42,16 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{ __html: ":root{--font-playfair:'Playfair Display',serif;--font-inter:'Inter',ui-sans-serif,sans-serif}" }} />
       </head>
       <body>
-        <ProjectProvider>
-          <div className="min-h-screen flex flex-col">
-            <AppNav />
-            <div className="flex-1">{children}</div>
-          </div>
-        </ProjectProvider>
+        <AuthProvider>
+          <ProjectProvider>
+            <AnswersProvider>
+              <div className="min-h-screen flex flex-col">
+                <AppNav />
+                <div className="flex-1">{children}</div>
+              </div>
+            </AnswersProvider>
+          </ProjectProvider>
+        </AuthProvider>
       </body>
     </html>
   );

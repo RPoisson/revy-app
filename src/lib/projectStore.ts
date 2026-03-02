@@ -8,6 +8,7 @@ export type Project = {
   name: string;
   status: ProjectStatus;
   createdAt: string; // ISO
+  designsCreated?: boolean;
 };
 
 const PROJECTS_KEY = "revy.projects.v1";

@@ -53,10 +53,10 @@ export default function CreateProjectPage() {
             <button
               type="button"
               disabled={!canSubmit}
-              onClick={() => {
+              onClick={async () => {
                 if (!canSubmit) return;
-                createProject(trimmed);
-                router.push("/quiz/scope");
+                const project = await createProject(trimmed);
+                if (project) router.push("/quiz/scope");
               }}
               className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-black text-[#F8F5EE] text-sm font-medium tracking-wide disabled:opacity-40 hover:bg-black/90 transition"
             >

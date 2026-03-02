@@ -14,15 +14,10 @@ import {
   BATHROOM_CONFIG_ROOM_IDS,
   BATHROOM_CONFIG_OPTIONS,
 } from "@/app/quiz/scope/questions";
-import {
-  clearAnswers,
-  getAnswers,
-  saveAnswers,
-  type QuizAnswers,
-} from "@/app/quiz/lib/answersStore";
+import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 import Link from "next/link";
 import { useProjects } from "@/context/ProjectContext";
-import { getDesignsCreated } from "@/lib/designsCreatedStore";
+import { useAnswers } from "@/context/AnswersContext";
 
 function qtyKey(optionId: string) {
   return `rooms_qty_${optionId}`;
@@ -165,10 +160,10 @@ function RoomNamesInputs({
 
 export default function ScopePage() {
   const router = useRouter();
-  const { currentProjectId } = useProjects();
-
+  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { getAnswers, saveAnswers, clearAnswers } = useAnswers();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<QuizAnswers>(() => getAnswers(currentProjectId ?? undefined));
+  const [answers, setAnswers] = useState<QuizAnswers>({});
   const [locked, setLocked] = useState(false);
 
   const visibleQuestions = useMemo(
@@ -188,7 +183,7 @@ export default function ScopePage() {
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
     setLocked(getDesignsCreated(currentProjectId ?? undefined));
-  }, [currentProjectId]);
+  }, [currentProjectId, getAnswers]);
 
   useEffect(() => {
     saveAnswers(answers, currentProjectId ?? undefined);

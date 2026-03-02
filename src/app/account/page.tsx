@@ -3,15 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useProjects } from "@/context/ProjectContext";
-import { getAnswers } from "@/app/quiz/lib/answersStore";
-import { getDesignsCreated } from "@/lib/designsCreatedStore";
+import { useAnswers } from "@/context/AnswersContext";
 import { SCOPE_QUESTIONS } from "@/app/quiz/scope/questions";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
 import { QUESTIONS as TASTE_QUESTIONS } from "@/questions";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { projects, currentProjectId, setCurrentProjectId, createProject, updateProject, deleteProject } = useProjects();
+  const { projects, currentProjectId, setCurrentProjectId, createProject, updateProject, deleteProject, getDesignsCreated, setDesignsCreated } = useProjects();
+  const { getAnswers, clearAnswers } = useAnswers();
   const [newProjectName, setNewProjectName] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -31,7 +31,6 @@ export default function AccountPage() {
 
     const hasDesigns = getDesignsCreated(projectId);
     if (hasDesigns) return "Designed — designs created";
-
     if (hasCompletedQuiz) return "Project Plan created — quiz complete";
 
     return "In progress — quiz responses saved";
@@ -68,8 +67,6 @@ export default function AccountPage() {
 
       // Remove stored quiz answers and design flags
       try {
-        const { clearAnswers } = require("@/app/quiz/lib/answersStore") as typeof import("@/app/quiz/lib/answersStore");
-        const { setDesignsCreated } = require("@/lib/designsCreatedStore") as typeof import("@/lib/designsCreatedStore");
         clearAnswers(projectId);
         setDesignsCreated(projectId, false);
       } catch {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useProjects } from "@/context/ProjectContext";
-import { getAnswers } from "@/app/quiz/lib/answersStore";
+import { useAnswers } from "@/context/AnswersContext";
 import { ProjectRequiredEmpty } from "./ProjectRequiredEmpty";
 
 /**
@@ -16,6 +16,7 @@ export function ProjectRequiredGuard({
   emptyVariant?: "plan" | "designs";
 }) {
   const { currentProjectId } = useProjects();
+  const { getAnswers } = useAnswers();
 
   if (!currentProjectId) {
     return <ProjectRequiredEmpty variant={emptyVariant} />;

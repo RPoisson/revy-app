@@ -7,14 +7,9 @@ import { QUESTIONS, Question } from "@/questions";
 import { scoreQuiz, Answers as ScoringAnswers } from "@/app/scoring";
 import { generateResultText, GeneratedResultText } from "@/app/resultText";
 import QuestionOptions from "@/app/quiz/components/QuestionOptions";
-import {
-  getAnswers,
-  saveAnswers,
-  clearAnswers,
-  QuizAnswers,
-} from "@/app/quiz/lib/answersStore";
+import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 import { useProjects } from "@/context/ProjectContext";
-import { getDesignsCreated } from "@/lib/designsCreatedStore";
+import { useAnswers } from "@/context/AnswersContext";
 
 function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
   let changed = false;
@@ -59,7 +54,8 @@ function pruneInvalidAnswers(allAnswers: QuizAnswers): QuizAnswers {
 
 export default function QuizPage() {
   const router = useRouter();
-  const { currentProjectId } = useProjects();
+  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { getAnswers, saveAnswers } = useAnswers();
 
   const [mounted, setMounted] = useState(false);
 
