@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -54,13 +55,16 @@ export function AnswersProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const value: AnswersContextValue = {
-    getAnswers,
-    saveAnswers,
-    clearAnswers,
-    loadAnswersFromSupabase,
-    loadingProjectId: null,
-  };
+  const value = useMemo<AnswersContextValue>(
+    () => ({
+      getAnswers,
+      saveAnswers,
+      clearAnswers,
+      loadAnswersFromSupabase,
+      loadingProjectId: null,
+    }),
+    [getAnswers, saveAnswers, clearAnswers, loadAnswersFromSupabase]
+  );
 
   return (
     <AnswersContext.Provider value={value}>{children}</AnswersContext.Provider>
