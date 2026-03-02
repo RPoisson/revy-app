@@ -94,8 +94,12 @@ function parseSummaryBlocksResponse(content: string): { title: string; body: str
 }
 
 export async function POST(request: Request) {
-  if (!process.env.OPENAI_API_KEY?.trim()) {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+  const apiKey = process.env.OPENAI_API_KEY?.trim() || process.env.OPEN_API_KEY?.trim();
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "Service unavailable" },
+      { status: 503, headers: { "X-LLM-Skipped": "no-api-key" } }
+    );
   }
   try {
     const body = (await request.json()) as {
@@ -130,10 +134,10 @@ export async function POST(request: Request) {
       summaryBlocks = parseSummaryBlocksResponse(summaryResult.content);
     }
 
-    return NextResponse.json({
-      styleReasoningBySlot,
-      summaryBlocks,
-    });
+    return NextResponse.json(
+      { styleReasoningBySlot, summaryBlocks },
+      { headers: { "X-LLM-Used": "true" } }
+    );
   } catch (err) {
     console.error("[render-text] LLM error:", err);
     return NextResponse.json(

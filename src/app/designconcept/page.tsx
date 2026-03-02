@@ -16,7 +16,7 @@ import { SectionHeader, CARD_STYLE } from "./components/SectionHeader";
 import { useProjects } from "@/context/ProjectContext";
 import { getDesignsCreated } from "@/lib/designsCreatedStore";
 import { getAnswers, type QuizAnswers } from "@/app/quiz/lib/answersStore";
-import { getDesignConceptOutput } from "@/lib/designConceptStore";
+import { getDesignConceptOutput, type DesignConceptOutput } from "@/lib/designConceptStore";
 import { buildMoodboardRoomsFromScope, type MoodboardRoomItem } from "./buildMoodboardRooms";
 import { scoreQuiz } from "@/app/scoring";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
@@ -59,7 +59,12 @@ export default function DesignConceptPage() {
     if (!ids.has(selectedRoomId)) setSelectedRoomId(firstId);
   }, [roomsList, selectedRoomId, firstId]);
 
-  const agentOutput = getDesignConceptOutput(currentProjectId ?? undefined);
+  // Load from localStorage only on client so we get the stored LLM output (server has no localStorage)
+  const [agentOutput, setAgentOutput] = useState<DesignConceptOutput | null>(null);
+  useEffect(() => {
+    setAgentOutput(getDesignConceptOutput(currentProjectId ?? undefined) ?? null);
+  }, [currentProjectId]);
+
   const answers = useMemo(
     () => getAnswers(currentProjectId ?? undefined) ?? undefined,
     [currentProjectId]

@@ -5,7 +5,7 @@ import type { CompletionMessage, CompletionResult, LLMOptions } from "./types";
 import { LLM_TASK_CONFIG, DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE } from "./config";
 
 function getClient(): OpenAI {
-  const key = process.env.OPENAI_API_KEY;
+  const key = (process.env.OPENAI_API_KEY ?? process.env.OPEN_API_KEY)?.trim();
   if (!key) throw new Error("OPENAI_API_KEY is not set");
   return new OpenAI({ apiKey: key });
 }

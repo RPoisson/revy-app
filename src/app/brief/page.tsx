@@ -352,6 +352,12 @@ export default function BriefPage() {
           };
           styleReasoningBySlot = data.styleReasoningBySlot ?? {};
           summaryBlocks = data.summaryBlocks;
+          if (summaryBlocks?.length) {
+            console.info("[Create Designs] LLM summary and reasoning received.");
+          }
+        } else {
+          const errBody = await res.json().catch(() => ({})) as { error?: string };
+          console.warn("LLM render-text returned", res.status, errBody?.error ?? res.statusText);
         }
       } catch (llmErr) {
         console.warn("LLM render-text failed, using fallback:", llmErr);
@@ -592,6 +598,12 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
           };
           styleReasoningBySlot = data.styleReasoningBySlot ?? {};
           summaryBlocks = data.summaryBlocks;
+          if (summaryBlocks?.length) {
+            console.info("[Create Designs] LLM summary and reasoning received.");
+          }
+        } else {
+          const errBody = await res.json().catch(() => ({})) as { error?: string };
+          console.warn("LLM render-text returned", res.status, errBody?.error ?? res.statusText);
         }
       } catch (llmErr) {
         console.warn("LLM render-text failed, using fallback:", llmErr);
