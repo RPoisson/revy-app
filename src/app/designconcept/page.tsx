@@ -62,7 +62,25 @@ export default function DesignConceptPage() {
   // Load from localStorage only on client so we get the stored LLM output (server has no localStorage)
   const [agentOutput, setAgentOutput] = useState<DesignConceptOutput | null>(null);
   useEffect(() => {
-    setAgentOutput(getDesignConceptOutput(currentProjectId ?? undefined) ?? null);
+    const stored = getDesignConceptOutput(currentProjectId ?? undefined) ?? null;
+    setAgentOutput(stored);
+    console.info("[Revy Design Concept]", {
+      currentProjectId: currentProjectId ?? "(null)",
+      designsCreated,
+      hasStoredOutput: !!stored,
+      hasPmOutput: !!stored?.pmOutput,
+      selectionsCount: stored?.pmOutput ? Object.keys(stored.pmOutput.selectionsBySlot ?? {}).length : 0,
+      hasSummaryBlocks: !!stored?.summaryBlocks?.length,
+    });
+  }, [currentProjectId]);
+  // Re-read after a short delay to pick up data written right before router.push (same tick)
+  useEffect(() => {
+    if (!currentProjectId) return;
+    const t = window.setTimeout(() => {
+      const stored = getDesignConceptOutput(currentProjectId) ?? null;
+      if (stored) setAgentOutput(stored);
+    }, 100);
+    return () => window.clearTimeout(t);
   }, [currentProjectId]);
 
   const answers = useMemo(

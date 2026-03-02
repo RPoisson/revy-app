@@ -652,6 +652,7 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
         investmentRangeLabel,
       });
       setDesignsCreated(currentProjectId, true);
+      console.info("[Revy] Saved design output for project", currentProjectId, "selections:", Object.keys(mergedSelectionsBySlot).length, "summaryBlocks:", summaryBlocks?.length ?? 0);
       router.push("/designconcept");
     } catch (err) {
       console.error("Create Designs pipeline failed:", err);
