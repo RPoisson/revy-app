@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   description: "Discover your French-California interior StyleDNA.",
   icons: {
     icon: [
-      { url: `${basePath}/icon.png?v=2`, type: "image/png", sizes: "32x32" },
+      { url: `${basePath}/icon.png?v=3`, type: "image/png", sizes: "32x32" },
     ],
-    shortcut: `${basePath}/icon.png?v=2`,
+    shortcut: `${basePath}/icon.png?v=3`,
   },
 };
 
