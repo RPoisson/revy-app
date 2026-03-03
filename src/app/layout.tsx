@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   description: "Discover your French-California interior StyleDNA.",
   icons: {
     icon: [
-      { url: `${basePath}/icon.png`, type: "image/png", sizes: "32x32" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
     ],
-    shortcut: `${basePath}/icon.png`,
+    shortcut: "/icon.png",
   },
 };
 
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="font-sans" style={{ fontFamily: "var(--font-inter), ui-sans-serif, sans-serif" }}>
       <head>
-        <link rel="icon" href={`${basePath}/icon.png`} type="image/png" sizes="32x32" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="32x32" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
