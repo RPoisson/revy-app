@@ -42,9 +42,6 @@ export function buildMoodboardRoomsFromScope(answers: QuizAnswers): MoodboardRoo
   const items: MoodboardRoomItem[] = [];
 
   for (const scopeRoomId of roomIds) {
-    const layoutIds = SCOPE_TO_MOODBOARD_ROOM[scopeRoomId as ScopeRoomId];
-    if (layoutIds == null || layoutIds.length === 0) continue; // no moodboard layout for this scope room
-
     const count = getRoomCount(answers, scopeRoomId);
     const names = answers[roomNamesKey(scopeRoomId)] ?? [];
     const baseLabel = ROOM_OPTION_LABELS[scopeRoomId] ?? scopeRoomId;
@@ -66,7 +63,8 @@ export function buildMoodboardRoomsFromScope(answers: QuizAnswers): MoodboardRoo
           config
         );
       } else {
-        layoutId = layoutIds[0];
+        const layoutIds = SCOPE_TO_MOODBOARD_ROOM[scopeRoomId as ScopeRoomId];
+        layoutId = (layoutIds?.[0] ?? "kitchen") as MoodboardRoomId;
       }
 
       items.push({

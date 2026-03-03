@@ -33,7 +33,8 @@ export type ScopeRoomId = (typeof SCOPE_ROOM_IDS)[number];
 
 /**
  * **Moodboard layout room IDs** — from Design Concept room layouts (designconcept/roomLayouts.ts ALL_ROOMS).
- * This product version supports: kitchen, all bathroom configs, laundry only.
+ * Used by getRoomLayout(roomId) and the moodboard room selector. Use these when wiring CD → Studio Coordinator
+ * so the selected room matches a layout (e.g. primary-bathroom, kitchen, living-family).
  */
 export const MOODBOARD_ROOM_IDS = [
   "kitchen",
@@ -42,7 +43,12 @@ export const MOODBOARD_ROOM_IDS = [
   "guest-kids-bath",
   "guest-kids-bath-tub-shower",
   "powder-room",
+  "living-family",
+  "dining-room",
   "laundry",
+  "entry-foyer",
+  "home-office",
+  "bedrooms",
 ] as const;
 
 export type MoodboardRoomId = (typeof MOODBOARD_ROOM_IDS)[number];
@@ -52,7 +58,6 @@ export type MoodboardRoomId = (typeof MOODBOARD_ROOM_IDS)[number];
  * can use different layouts). Use when deriving options.rooms from answers["rooms"] for the
  * Design Concept flow so CD output keys (e.g. slotId|roomId) match getRoomLayout(roomId).
  */
-/** Scope rooms that have a moodboard layout in this product version (kitchen, bathrooms, laundry). */
 export const SCOPE_TO_MOODBOARD_ROOM: Partial<Record<ScopeRoomId, MoodboardRoomId[]>> = {
   kitchen: ["kitchen"],
   primary_bath: ["primary-bathroom", "primary-bathroom-no-tub"],
@@ -60,7 +65,16 @@ export const SCOPE_TO_MOODBOARD_ROOM: Partial<Record<ScopeRoomId, MoodboardRoomI
   kids_bath: ["guest-kids-bath", "guest-kids-bath-tub-shower"],
   powder: ["powder-room"],
   secondary_bath: ["guest-kids-bath", "powder-room"],
+  living: ["living-family"],
+  family: ["living-family"],
+  dining: ["dining-room"],
   laundry: ["laundry"],
+  entry: ["entry-foyer"],
+  office: ["home-office"],
+  primary_bedroom: ["bedrooms"],
+  nursery_bedroom: ["bedrooms"],
+  child_bedroom: ["bedrooms"],
+  teen_bedroom: ["bedrooms"],
 };
 
 /** Scope room IDs that have a bathroom tub/shower config question. */

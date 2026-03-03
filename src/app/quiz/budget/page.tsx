@@ -1,7 +1,7 @@
 // src/app/quiz/budget/page.tsx
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Question } from "@/questions";
@@ -19,6 +19,7 @@ export default function BudgetPage() {
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({});
+  const skipNextSave = useRef(true);
 
   const total = BUDGET_QUESTIONS.length;
   const question = BUDGET_QUESTIONS[step];
@@ -28,9 +29,14 @@ export default function BudgetPage() {
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
+    skipNextSave.current = true;
   }, [currentProjectId, getAnswers]);
 
   useEffect(() => {
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
     saveAnswers(answers, currentProjectId ?? undefined);
   }, [answers, currentProjectId]);
 

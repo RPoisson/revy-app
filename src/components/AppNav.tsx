@@ -22,7 +22,9 @@ function NavLink({
   className?: string;
 }) {
   const pathname = usePathname();
-  const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+  const active =
+    pathname != null &&
+    (pathname === href || (href !== "/" && pathname.startsWith(href)));
   return (
     <Link
       href={href}
@@ -44,10 +46,10 @@ export function AppNav() {
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
 
   const quizHref = currentProjectId ? "/quiz/scope" : "/create-project";
-  const isQuizActive = pathname === "/" || pathname?.startsWith("/quiz");
-
+  const isQuizActive =
+    pathname != null && (pathname === "/" || pathname.startsWith("/quiz"));
   const isDesignConceptActive =
-    pathname?.startsWith("/designconcept");
+    pathname != null && pathname.startsWith("/designconcept");
 
   const checkAuth = useCallback(async () => {
     try {
@@ -68,8 +70,8 @@ export function AppNav() {
     window.location.href = "/";
   };
 
-  // Don't show nav on login page
-  if (pathname === "/login") return null;
+  // Don't show nav on login page (pathname can be null during client nav)
+  if (pathname != null && pathname === "/login") return null;
 
   return (
     <header className="relative z-40 bg-white border-b border-black/5">

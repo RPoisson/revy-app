@@ -1,7 +1,7 @@
 //revy-quiz/quiz/scope/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Question } from "@/questions";
 import QuestionOptions from "@/app/quiz/components/QuestionOptions";
@@ -62,11 +62,12 @@ function BathroomSetupInputs({
           <div key={roomId} className="space-y-4">
             {Array.from({ length: count }, (_, i) => {
               const instanceLabel =
-                count === 1 ? baseLabel : names[i] || `${baseLabel} (${i + 1})`;
+                count === 1 ? baseLabel : `${baseLabel} (${i + 1})`;
+              const displayLabel = (names[i] && String(names[i]).trim()) || instanceLabel;
               const selected = configs[i] ?? "";
               return (
                 <div key={`${roomId}-${i}`} className="rounded-lg border border-black/10 bg-white/50 p-4 space-y-3">
-                  <p className="text-sm font-medium text-black/90">{instanceLabel}</p>
+                  <p className="text-sm font-medium text-black/90">{displayLabel}</p>
                   <div className="flex flex-wrap gap-2">
                     {BATHROOM_CONFIG_OPTIONS.map((opt) => (
                       <button
@@ -164,6 +165,7 @@ export default function ScopePage() {
   const { getAnswers, saveAnswers, clearAnswers } = useAnswers();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({});
+  const skipNextSave = useRef(true);
 
   const visibleQuestions = useMemo(
     () =>
@@ -181,9 +183,14 @@ export default function ScopePage() {
 
   useEffect(() => {
     setAnswers(getAnswers(currentProjectId ?? undefined));
+    skipNextSave.current = true; // after load, skip one save to avoid writing stale state
   }, [currentProjectId, getAnswers]);
 
   useEffect(() => {
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
     saveAnswers(answers, currentProjectId ?? undefined);
   }, [answers, currentProjectId]);
 

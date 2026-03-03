@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import {
-  getAnswers,
+  getAnswers as getAnswersFromStore,
   saveAnswers as saveAnswersLocal,
   clearAnswers as clearAnswersLocal,
   type QuizAnswers,
@@ -34,9 +34,9 @@ export function AnswersProvider({ children }: { children: ReactNode }) {
   const getAnswers = useCallback(
     (projectId: string | null | undefined): QuizAnswers => {
       if (!projectId) return {};
-      return getAnswers(projectId);
+      return getAnswersFromStore(projectId);
     },
-    [cache]
+    []
   );
 
   const saveAnswers = useCallback(

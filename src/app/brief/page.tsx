@@ -41,10 +41,78 @@ import {
 import { buildCreativeDirectorInput } from "@/app/agents/buildCreativeDirectorInput";
 import { runCreativeDirector } from "@/app/agents/creativeDirectorAgent";
 import { runProjectManagerSelection } from "@/app/agents/projectManagerSelection";
+import type { ProjectManagerSelectionOutput, SelectedProduct } from "@/app/agents/projectManagerAgent.types";
 import { buildMoodboardRoomsFromScope } from "@/app/designconcept/buildMoodboardRooms";
 import { setDesignConceptOutput } from "@/lib/designConceptStore";
 import type { ArchetypeId } from "@/app/style/styleDNA";
 import { STYLE_DNA } from "@/app/style/styleDNA";
+
+/** When true, skip CD/PM/LLM and use dummy data for moodboard + Decision Detail. Set false to restore full pipeline. */
+const BYPASS_CD_PM_LLM = true;
+
+function getDummyPmOutput(): ProjectManagerSelectionOutput {
+  const slots: Record<string, SelectedProduct> = {
+    lighting: {
+      product: {
+        id: "dummy.lighting_01",
+        vendor: "dummy",
+        vendor_sku: "lighting_01",
+        slotId: "lighting",
+        title: "Placeholder sconce",
+        material: "metal",
+        finish: "brushed",
+      },
+      scopeReasoning: "Dummy scope — agents bypassed for local testing.",
+      styleReasoning: "Placeholder style reasoning.",
+    },
+    hardware: {
+      product: {
+        id: "dummy.hardware_01",
+        vendor: "dummy",
+        vendor_sku: "hardware_01",
+        slotId: "hardware",
+        title: "Placeholder cabinet pull",
+        material: "brass",
+        finish: "polished",
+      },
+      scopeReasoning: "Dummy scope — agents bypassed for local testing.",
+      styleReasoning: "Placeholder style reasoning.",
+    },
+    countertop: {
+      product: {
+        id: "dummy.countertop_01",
+        vendor: "dummy",
+        vendor_sku: "countertop_01",
+        slotId: "countertop",
+        title: "Placeholder countertop",
+        material: "quartz",
+        finish: "honed",
+      },
+      scopeReasoning: "Dummy scope — agents bypassed for local testing.",
+      styleReasoning: "Placeholder style reasoning.",
+    },
+    tile_floor: {
+      product: {
+        id: "dummy.tile_floor_01",
+        vendor: "dummy",
+        vendor_sku: "tile_floor_01",
+        slotId: "tile_floor",
+        title: "Placeholder floor tile",
+        material: "porcelain",
+        finish: "matte",
+      },
+      scopeReasoning: "Dummy scope — agents bypassed for local testing.",
+      styleReasoning: "Placeholder style reasoning.",
+    },
+  };
+  const selections = Object.entries(slots).map(([, sel]) => sel);
+  return {
+    selectionsBySlot: slots,
+    selections,
+    budgetStatus: "comfortable",
+    professionalReasoning: ["Bypass mode: no CD/PM/LLM run. Dummy data only."],
+  };
+}
 
 function first(answers: QuizAnswers, key: string): string | undefined {
   const v = answers[key];
@@ -281,115 +349,130 @@ export default function BriefPage() {
     if (!currentProjectId || !answers) return;
     setCreatingDesigns(true);
     try {
-      const roomItems = buildMoodboardRoomsFromScope(answers);
-      const rooms =
-        roomItems.length > 0
-          ? [...new Set(roomItems.map((r) => r.layoutId))]
-          : ["kitchen", "primary-bathroom", "living-family"];
-
-      const cdInput = buildCreativeDirectorInput(answers, { rooms });
-      const cdOutput = runCreativeDirector(cdInput);
-      const pmOutput = runProjectManagerSelection({ answers }, cdOutput);
-
       const archetype = (scoreQuiz(answers as Record<string, string | string[]>).primaryArchetype ??
         "provincial") as ArchetypeId;
-      const dna = STYLE_DNA[archetype];
       const investmentRangeLabel =
         resolveOne(answers, budgetIndex, "investment_range").label ?? "$200k–$350k";
-      const capacity = getBudgetCapacityPoints(answers);
-      const complexity = computeComplexityPoints(answers);
-      const budgetStatus = capacity
-        ? computeBudgetFit(complexity, capacity, answers)
-        : "comfortable";
-      const styleDNATitle = ["Tonal", "Curated", dna.label].join(" ");
 
-      let styleReasoningBySlot: Record<string, string> = {};
+      let pmOutput: ProjectManagerSelectionOutput;
       let summaryBlocks: { title: string; body: string }[] | undefined;
-      try {
-        console.info("[Revy] Calling LLM API: POST /api/design-concept/render-text");
-        const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 10000);
-        const res = await fetch("/api/design-concept/render-text", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Revy-Request": "render-text",
-          },
-          body: JSON.stringify({
-            selectionsBySlot: Object.fromEntries(
-              Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
-                k,
-                {
-                  product: {
-                    title: v.product.title,
-                    material: v.product.material,
-                    finish: v.product.finish,
-                    slotId: v.product.slotId,
+
+      if (BYPASS_CD_PM_LLM) {
+        console.info("[Revy] Bypassing CD/PM/LLM — using dummy data only.");
+        pmOutput = getDummyPmOutput();
+        summaryBlocks = [
+          { title: "Targeting Your Investment Range", body: `Dummy summary. Every selection is placeholder data (agents bypassed). Investment range: ${investmentRangeLabel}.` },
+          { title: "Strategic Trade-offs", body: "Dummy summary. No agents run — for local testing only." },
+          { title: "Matches Your Unique Style", body: "Dummy summary. Style reasoning would come from the LLM when bypass is off." },
+          { title: "Intentional Selections", body: "Dummy summary. Decision Detail table shows placeholder scope/style text." },
+        ];
+      } else {
+        const roomItems = buildMoodboardRoomsFromScope(answers);
+        const rooms =
+          roomItems.length > 0
+            ? [...new Set(roomItems.map((r) => r.layoutId))]
+            : ["kitchen", "primary-bathroom", "living-family"];
+
+        const cdInput = buildCreativeDirectorInput(answers, { rooms });
+        const cdOutput = runCreativeDirector(cdInput);
+        pmOutput = runProjectManagerSelection({ answers }, cdOutput);
+
+        const dna = STYLE_DNA[archetype];
+        const capacity = getBudgetCapacityPoints(answers);
+        const complexity = computeComplexityPoints(answers);
+        const budgetStatus = capacity
+          ? computeBudgetFit(complexity, capacity, answers)
+          : "comfortable";
+        const styleDNATitle = ["Tonal", "Curated", dna.label].join(" ");
+
+        let styleReasoningBySlot: Record<string, string> = {};
+        try {
+          console.info("[Revy] Calling LLM API: POST /api/design-concept/render-text");
+          const controller = new AbortController();
+          const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+          const res = await fetch("/api/design-concept/render-text", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Revy-Request": "render-text",
+            },
+            body: JSON.stringify({
+              selectionsBySlot: Object.fromEntries(
+                Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
+                  k,
+                  {
+                    product: {
+                      title: v.product.title,
+                      material: v.product.material,
+                      finish: v.product.finish,
+                      slotId: v.product.slotId,
+                    },
+                    scopeReasoning: v.scopeReasoning,
                   },
-                  scopeReasoning: v.scopeReasoning,
-                },
-              ])
-            ),
-            styleContext: {
-              primaryArchetype: archetype,
-              essence: dna.essence,
-              signatureNotes: dna.signatureNotes ?? [],
-              settingVibe: dna.settingVibe,
-            },
-            summaryContext: {
-              investmentRangeLabel,
-              budgetStatus: budgetStatus ?? "comfortable",
-              styleDNATitle,
-              strategicTradeoffsSummary:
-                pmOutput.professionalReasoning?.length > 0
-                  ? pmOutput.professionalReasoning.join(" ")
-                  : "Selections aligned to scope and budget. See the Decision Detail table below for specifics.",
-            },
-          }),
-          signal: controller.signal,
-        });
-        window.clearTimeout(timeoutId);
-        if (res.ok) {
-          const data = (await res.json()) as {
-            styleReasoningBySlot?: Record<string, string>;
-            summaryBlocks?: { title: string; body: string }[];
-          };
-          styleReasoningBySlot = data.styleReasoningBySlot ?? {};
-          summaryBlocks = data.summaryBlocks;
-          if (summaryBlocks?.length) {
-            console.info("[Create Designs] LLM summary and reasoning received.");
+                ])
+              ),
+              styleContext: {
+                primaryArchetype: archetype,
+                essence: dna.essence,
+                signatureNotes: dna.signatureNotes ?? [],
+                settingVibe: dna.settingVibe,
+              },
+              summaryContext: {
+                investmentRangeLabel,
+                budgetStatus: budgetStatus ?? "comfortable",
+                styleDNATitle,
+                strategicTradeoffsSummary:
+                  pmOutput.professionalReasoning?.length > 0
+                    ? pmOutput.professionalReasoning.join(" ")
+                    : "Selections aligned to scope and budget. See the Decision Detail table below for specifics.",
+              },
+            }),
+            signal: controller.signal,
+          });
+          window.clearTimeout(timeoutId);
+          if (res.ok) {
+            const data = (await res.json()) as {
+              styleReasoningBySlot?: Record<string, string>;
+              summaryBlocks?: { title: string; body: string }[];
+            };
+            styleReasoningBySlot = data.styleReasoningBySlot ?? {};
+            summaryBlocks = data.summaryBlocks;
+            if (summaryBlocks?.length) {
+              console.info("[Create Designs] LLM summary and reasoning received.");
+            }
+          } else {
+            const errBody = await res.json().catch(() => ({})) as { error?: string };
+            console.warn("LLM render-text returned", res.status, errBody?.error ?? res.statusText);
           }
-        } else {
-          const errBody = await res.json().catch(() => ({})) as { error?: string };
-          console.warn("LLM render-text returned", res.status, errBody?.error ?? res.statusText);
+        } catch (llmErr) {
+          console.warn("LLM render-text failed, using fallback:", llmErr);
         }
-      } catch (llmErr) {
-        console.warn("LLM render-text failed, using fallback:", llmErr);
-      }
 
-      const mergedSelectionsBySlot = { ...pmOutput.selectionsBySlot };
-      for (const [slotKey, reasoning] of Object.entries(styleReasoningBySlot)) {
-        if (mergedSelectionsBySlot[slotKey]) {
-          mergedSelectionsBySlot[slotKey] = {
-            ...mergedSelectionsBySlot[slotKey],
-            styleReasoning: reasoning,
-          };
+        const mergedSelectionsBySlot = { ...pmOutput.selectionsBySlot };
+        for (const [slotKey, reasoning] of Object.entries(styleReasoningBySlot)) {
+          if (mergedSelectionsBySlot[slotKey]) {
+            mergedSelectionsBySlot[slotKey] = {
+              ...mergedSelectionsBySlot[slotKey],
+              styleReasoning: reasoning,
+            };
+          }
         }
-      }
-      const mergedSelections = pmOutput.selections.map((sel) => {
-        const slotKey = Object.entries(pmOutput.selectionsBySlot).find(
-          ([_, v]) => v.product.id === sel.product.id
-        )?.[0];
-        const reasoning = slotKey ? styleReasoningBySlot[slotKey] : undefined;
-        return reasoning ? { ...sel, styleReasoning: reasoning } : sel;
-      });
-
-      setDesignConceptOutput(currentProjectId, {
-        pmOutput: {
+        const mergedSelections = pmOutput.selections.map((sel) => {
+          const slotKey = Object.entries(pmOutput.selectionsBySlot).find(
+            ([_, v]) => v.product.id === sel.product.id
+          )?.[0];
+          const reasoning = slotKey ? styleReasoningBySlot[slotKey] : undefined;
+          return reasoning ? { ...sel, styleReasoning: reasoning } : sel;
+        });
+        pmOutput = {
           ...pmOutput,
           selectionsBySlot: mergedSelectionsBySlot,
           selections: mergedSelections,
-        },
+        };
+      }
+
+      setDesignConceptOutput(currentProjectId, {
+        pmOutput,
         summaryBlocks,
         investmentRangeLabel,
       });
@@ -538,121 +621,135 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
     }
     setCreatingDesigns(true);
     try {
-      const roomItems = buildMoodboardRoomsFromScope(answers);
-      const rooms =
-        roomItems.length > 0
-          ? [...new Set(roomItems.map((r) => r.layoutId))]
-          : ["kitchen", "primary-bathroom", "living-family"];
-
-      const cdInput = buildCreativeDirectorInput(answers, { rooms });
-      const cdOutput = runCreativeDirector(cdInput);
-      const pmOutput = runProjectManagerSelection({ answers }, cdOutput);
-
       const archetype = (scoreQuiz(answers as Record<string, string | string[]>).primaryArchetype ??
         "provincial") as ArchetypeId;
-      const dna = STYLE_DNA[archetype];
       const investmentRangeLabel =
         resolveOne(answers, budgetIndex, "investment_range").label ?? "$200k–$350k";
-      const capacity = getBudgetCapacityPoints(answers);
-      const complexity = computeComplexityPoints(answers);
-      const budgetStatus = capacity
-        ? computeBudgetFit(complexity, capacity, answers)
-        : "comfortable";
-      const styleDNATitle = ["Tonal", "Curated", dna.label].join(" ");
 
-      let styleReasoningBySlot: Record<string, string> = {};
+      let pmOutput: ProjectManagerSelectionOutput;
       let summaryBlocks: { title: string; body: string }[] | undefined;
-      try {
-        console.info("[Revy] Calling LLM API: POST /api/design-concept/render-text");
-        // Call LLM endpoint with a hard timeout so the UI never hangs indefinitely.
-        const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 10000); // 10s budget
-        const res = await fetch("/api/design-concept/render-text", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Revy-Request": "render-text",
-          },
-          body: JSON.stringify({
-            selectionsBySlot: Object.fromEntries(
-              Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
-                k,
-                {
-                  product: {
-                    title: v.product.title,
-                    material: v.product.material,
-                    finish: v.product.finish,
-                    slotId: v.product.slotId,
+
+      if (BYPASS_CD_PM_LLM) {
+        console.info("[Revy] Bypassing CD/PM/LLM — using dummy data only.");
+        pmOutput = getDummyPmOutput();
+        summaryBlocks = [
+          { title: "Targeting Your Investment Range", body: `Dummy summary. Every selection is placeholder data (agents bypassed). Investment range: ${investmentRangeLabel}.` },
+          { title: "Strategic Trade-offs", body: "Dummy summary. No agents run — for local testing only." },
+          { title: "Matches Your Unique Style", body: "Dummy summary. Style reasoning would come from the LLM when bypass is off." },
+          { title: "Intentional Selections", body: "Dummy summary. Decision Detail table shows placeholder scope/style text." },
+        ];
+      } else {
+        const roomItems = buildMoodboardRoomsFromScope(answers);
+        const rooms =
+          roomItems.length > 0
+            ? [...new Set(roomItems.map((r) => r.layoutId))]
+            : ["kitchen", "primary-bathroom", "living-family"];
+
+        const cdInput = buildCreativeDirectorInput(answers, { rooms });
+        const cdOutput = runCreativeDirector(cdInput);
+        pmOutput = runProjectManagerSelection({ answers }, cdOutput);
+
+        const dna = STYLE_DNA[archetype];
+        const capacity = getBudgetCapacityPoints(answers);
+        const complexity = computeComplexityPoints(answers);
+        const budgetStatus = capacity
+          ? computeBudgetFit(complexity, capacity, answers)
+          : "comfortable";
+        const styleDNATitle = ["Tonal", "Curated", dna.label].join(" ");
+
+        let styleReasoningBySlot: Record<string, string> = {};
+        try {
+          console.info("[Revy] Calling LLM API: POST /api/design-concept/render-text");
+          const controller = new AbortController();
+          const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+          const res = await fetch("/api/design-concept/render-text", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Revy-Request": "render-text",
+            },
+            body: JSON.stringify({
+              selectionsBySlot: Object.fromEntries(
+                Object.entries(pmOutput.selectionsBySlot).map(([k, v]) => [
+                  k,
+                  {
+                    product: {
+                      title: v.product.title,
+                      material: v.product.material,
+                      finish: v.product.finish,
+                      slotId: v.product.slotId,
+                    },
+                    scopeReasoning: v.scopeReasoning,
                   },
-                  scopeReasoning: v.scopeReasoning,
-                },
-              ])
-            ),
-            styleContext: {
-              primaryArchetype: archetype,
-              essence: dna.essence,
-              signatureNotes: dna.signatureNotes ?? [],
-              settingVibe: dna.settingVibe,
-            },
-            summaryContext: {
-              investmentRangeLabel,
-              budgetStatus: budgetStatus ?? "comfortable",
-              styleDNATitle,
-              strategicTradeoffsSummary:
-                pmOutput.professionalReasoning?.length > 0
-                  ? pmOutput.professionalReasoning.join(" ")
-                  : "Selections aligned to scope and budget. See the Decision Detail table below for specifics.",
-            },
-          }),
-          signal: controller.signal,
-        });
-        window.clearTimeout(timeoutId);
-        if (res.ok) {
-          const data = (await res.json()) as {
-            styleReasoningBySlot?: Record<string, string>;
-            summaryBlocks?: { title: string; body: string }[];
-          };
-          styleReasoningBySlot = data.styleReasoningBySlot ?? {};
-          summaryBlocks = data.summaryBlocks;
-          if (summaryBlocks?.length) {
-            console.info("[Create Designs] LLM summary and reasoning received.");
+                ])
+              ),
+              styleContext: {
+                primaryArchetype: archetype,
+                essence: dna.essence,
+                signatureNotes: dna.signatureNotes ?? [],
+                settingVibe: dna.settingVibe,
+              },
+              summaryContext: {
+                investmentRangeLabel,
+                budgetStatus: budgetStatus ?? "comfortable",
+                styleDNATitle,
+                strategicTradeoffsSummary:
+                  pmOutput.professionalReasoning?.length > 0
+                    ? pmOutput.professionalReasoning.join(" ")
+                    : "Selections aligned to scope and budget. See the Decision Detail table below for specifics.",
+              },
+            }),
+            signal: controller.signal,
+          });
+          window.clearTimeout(timeoutId);
+          if (res.ok) {
+            const data = (await res.json()) as {
+              styleReasoningBySlot?: Record<string, string>;
+              summaryBlocks?: { title: string; body: string }[];
+            };
+            styleReasoningBySlot = data.styleReasoningBySlot ?? {};
+            summaryBlocks = data.summaryBlocks;
+            if (summaryBlocks?.length) {
+              console.info("[Create Designs] LLM summary and reasoning received.");
+            }
+          } else {
+            const errBody = await res.json().catch(() => ({})) as { error?: string };
+            console.warn("LLM render-text returned", res.status, errBody?.error ?? res.statusText);
           }
-        } else {
-          const errBody = await res.json().catch(() => ({})) as { error?: string };
-          console.warn("LLM render-text returned", res.status, errBody?.error ?? res.statusText);
+        } catch (llmErr) {
+          console.warn("LLM render-text failed, using fallback:", llmErr);
         }
-      } catch (llmErr) {
-        console.warn("LLM render-text failed, using fallback:", llmErr);
-      }
 
-      const mergedSelectionsBySlot = { ...pmOutput.selectionsBySlot };
-      for (const [slotKey, reasoning] of Object.entries(styleReasoningBySlot)) {
-        if (mergedSelectionsBySlot[slotKey]) {
-          mergedSelectionsBySlot[slotKey] = {
-            ...mergedSelectionsBySlot[slotKey],
-            styleReasoning: reasoning,
-          };
+        const mergedSelectionsBySlot = { ...pmOutput.selectionsBySlot };
+        for (const [slotKey, reasoning] of Object.entries(styleReasoningBySlot)) {
+          if (mergedSelectionsBySlot[slotKey]) {
+            mergedSelectionsBySlot[slotKey] = {
+              ...mergedSelectionsBySlot[slotKey],
+              styleReasoning: reasoning,
+            };
+          }
         }
-      }
-      const mergedSelections = pmOutput.selections.map((sel) => {
-        const slotKey = Object.entries(pmOutput.selectionsBySlot).find(
-          ([_, v]) => v.product.id === sel.product.id
-        )?.[0];
-        const reasoning = slotKey ? styleReasoningBySlot[slotKey] : undefined;
-        return reasoning ? { ...sel, styleReasoning: reasoning } : sel;
-      });
-
-      setDesignConceptOutput(currentProjectId, {
-        pmOutput: {
+        const mergedSelections = pmOutput.selections.map((sel) => {
+          const slotKey = Object.entries(pmOutput.selectionsBySlot).find(
+            ([_, v]) => v.product.id === sel.product.id
+          )?.[0];
+          const reasoning = slotKey ? styleReasoningBySlot[slotKey] : undefined;
+          return reasoning ? { ...sel, styleReasoning: reasoning } : sel;
+        });
+        pmOutput = {
           ...pmOutput,
           selectionsBySlot: mergedSelectionsBySlot,
           selections: mergedSelections,
-        },
+        };
+      }
+
+      setDesignConceptOutput(currentProjectId, {
+        pmOutput,
         summaryBlocks,
         investmentRangeLabel,
       });
       setDesignsCreated(currentProjectId, true);
-      console.info("[Revy] Saved design output for project", currentProjectId, "selections:", Object.keys(mergedSelectionsBySlot).length, "summaryBlocks:", summaryBlocks?.length ?? 0);
+      console.info("[Revy] Saved design output for project", currentProjectId, "selections:", Object.keys(pmOutput.selectionsBySlot).length, "summaryBlocks:", summaryBlocks?.length ?? 0);
       router.push("/designconcept");
     } catch (err) {
       console.error("Create Designs pipeline failed:", err);
