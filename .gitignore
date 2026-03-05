@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local / review
+AGENTS_LLM_SUPABASE_REVIEW.md
+scripts/
+src/app/clear-storage/

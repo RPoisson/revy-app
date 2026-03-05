@@ -23,6 +23,36 @@ const BATH_WALL_MIN_WIDTH_INCHES = 36;
 const DEFAULT_SCOPE_REASONING =
   "Within scope and investment range; suitable for selected finish level.";
 
+/** Build a human-readable sentence describing why a product was selected. */
+function buildScopeReasoning(
+  chosen: ProductCandidate,
+  filteredReasons: string[],
+  pairingApplied: boolean,
+  budgetConstrained: boolean,
+  passedAll: boolean
+): string {
+  const name = chosen.title ?? "Product";
+  const parts: string[] = [];
+
+  if (filteredReasons.length > 0) {
+    // Lead with what was excluded and why
+    parts.push(filteredReasons[0]);
+  }
+
+  // Describe why the chosen product was picked
+  if (budgetConstrained) {
+    parts.push(`${name} selected for best fit within investment range.`);
+  } else if (pairingApplied) {
+    parts.push(`${name} selected; compatible with paired slot selection.`);
+  } else if (passedAll) {
+    parts.push(`${name} selected; meets scope, finish level, and investment range.`);
+  } else {
+    parts.push(`${name} selected; best available given project constraints.`);
+  }
+
+  return parts.join(" ");
+}
+
 // Material/finish strings from DB (lowercase) that trigger PM rules
 const RENTAL_STONE_EXCLUDE = ["marble", "limestone", "terracotta"];
 const RENTAL_STONE_PREFER = ["quartz", "porcelain", "quartzite", "ceramic"];
@@ -245,6 +275,7 @@ export function runProjectManagerSelection(
       withRoom = candidates.map((c) => ({ ...c, roomId: c.roomId ?? roomId }));
     }
 
+    const filteredReasons: string[] = [];
     const passed = withRoom.filter((c) => {
       const r = passesFinishAndScopeRules(
         c,
@@ -253,6 +284,9 @@ export function runProjectManagerSelection(
         narrowBathRoomIds,
         reasoning
       );
+      if (!r.pass && r.reason && !filteredReasons.includes(r.reason)) {
+        filteredReasons.push(r.reason);
+      }
       return r.pass;
     });
 
@@ -260,14 +294,12 @@ export function runProjectManagerSelection(
     const ranked = rankByBudget(pool, budgetStatus);
     const chosen = ranked[0];
     const pairingApplied = rulesWhereThisIsB.length > 0 && selectionsBySlot[rulesWhereThisIsB[0].slotKeyA];
+    const budgetConstrained = (budgetStatus === "tight" || budgetStatus === "mismatch") && pool.length > 1;
+    const passedAll = passed.length === withRoom.length;
     const scopeReason =
       passed.length === 0
         ? "Constraints relaxed; selected best available for scope and budget."
-        : passed.length < withRoom.length
-          ? "Selected for finish/scope fit and budget."
-          : pairingApplied
-            ? "Selected for scope, budget, and pairing with other slots."
-            : DEFAULT_SCOPE_REASONING;
+        : buildScopeReasoning(chosen, filteredReasons, !!pairingApplied, budgetConstrained, passedAll);
 
     const selected: SelectedProduct = {
       product: chosen,
