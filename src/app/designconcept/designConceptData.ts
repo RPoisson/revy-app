@@ -33,6 +33,8 @@ export type MoodboardImage = {
 
 export type MaterialDecisionRow = {
   slotId: SlotId;
+  /** Room this selection belongs to (moodboard layout ID, e.g. "primary-bathroom"). Undefined for placeholder rows. */
+  roomId?: string;
   slotTitle: string;
   thumbnailUrl: string;
   description: string;
@@ -90,10 +92,11 @@ export function buildDesignConceptFromAgentOutput(
 
   const materialsResolved: MaterialDecisionRow[] = Object.entries(pmOutput.selectionsBySlot).map(
     ([slotKey, sel]) => {
-      const slotIdRaw = slotKeyToSlotId(slotKey);
+      const [slotIdRaw, roomId] = slotKey.includes("|") ? slotKey.split("|") : [slotKey, undefined];
       const slotId = slotIdRaw as SlotId;
       return {
         slotId,
+        roomId,
         slotTitle: SLOT_TITLES[slotId] ?? slotIdRaw.replace(/_/g, " "),
         thumbnailUrl: sel.product.image_url1 ?? PLACEHOLDER_IMG,
         description: sel.product.title ?? "",

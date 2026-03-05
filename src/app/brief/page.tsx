@@ -48,7 +48,7 @@ import type { ArchetypeId } from "@/app/style/styleDNA";
 import { STYLE_DNA } from "@/app/style/styleDNA";
 
 /** When true, skip CD/PM/LLM and use dummy data for moodboard + Decision Detail. Set false to restore full pipeline. */
-const BYPASS_CD_PM_LLM = true;
+const BYPASS_CD_PM_LLM = false;
 
 function getDummyPmOutput(): ProjectManagerSelectionOutput {
   const slots: Record<string, SelectedProduct> = {

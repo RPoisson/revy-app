@@ -126,6 +126,16 @@ export default function DesignConceptPage() {
     return layout?.displayName ?? layout?.name ?? "Room";
   }, [selectedItem, layout]);
 
+  const selectedLayoutId = useMemo(
+    () => (selectedItem as MoodboardRoomItem)?.layoutId ?? selectedRoomId,
+    [selectedItem, selectedRoomId]
+  );
+
+  const filteredMaterials = useMemo(
+    () => materials.filter((r) => !r.roomId || r.roomId === selectedLayoutId),
+    [materials, selectedLayoutId]
+  );
+
   return (
     <div className="min-h-screen bg-[var(--background)]" data-design-concept-detail>
       {!designsCreated && (
@@ -257,9 +267,9 @@ export default function DesignConceptPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {materials.map((row) => (
+                    {filteredMaterials.map((row) => (
                       <tr
-                        key={row.slotId}
+                        key={row.roomId ? `${row.slotId}|${row.roomId}` : row.slotId}
                         className="border-t border-black/10 hover:bg-black/[0.02] transition-colors align-top"
                       >
                         <td className="px-6 py-4 font-medium text-black text-xs">
