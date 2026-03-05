@@ -128,10 +128,10 @@ export function buildDesignConceptFromAgentOutput(
           {
             title: "Targeting Your Investment Range",
             body: pmOutput.budgetStatus === "mismatch"
-              ? `Your stated budget of ${investmentRangeLabel} is a stretch for the scope selected. Selections have been steered toward lower-cost options where possible—but staying fully within this range may not be feasible. Consider adjusting your scope or budget to close the gap.`
+              ? `Based on your budget of ${investmentRangeLabel} and the scope selected, there is a meaningful gap between what's been asked for and what that budget can realistically cover. Selections have been steered toward lower-cost options where possible, but staying fully within this range may not be feasible. Consider adjusting your scope or budget to close the gap.`
               : pmOutput.budgetStatus === "tight"
-                ? `Selections are steered toward ${investmentRangeLabel}. The budget is tight for the scope, so lower-cost options were favored where possible without compromising the design intent.`
-                : `Selections have been curated to align with ${investmentRangeLabel}. We've balanced focal-point pieces with cost-effective supporting elements to keep the overall investment on track.`,
+                ? `Based on your budget of ${investmentRangeLabel} and the scope selected, the match is tight. Selections have been steered toward lower-cost options where possible to keep the overall investment on track, without compromising the core design intent.`
+                : `Based on your budget of ${investmentRangeLabel} and the scope selected, the match is comfortable. Selections have been curated to fit within this range—balancing focal-point pieces with cost-effective supporting elements so the overall investment stays on track.`,
           },
           {
             title: "Strategic Trade-offs",
