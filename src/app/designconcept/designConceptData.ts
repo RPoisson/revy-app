@@ -118,8 +118,8 @@ export function buildDesignConceptFromAgentOutput(
     pmOutput.budgetStatus === "comfortable"
       ? `Selections fit comfortably within ${investmentRangeLabel}. Scope and finish level were applied consistently—the Decision Detail table below spells out the specific reasoning for each selection.`
       : pmOutput.budgetStatus === "tight"
-        ? `Selections are aligned to ${investmentRangeLabel} with limited flexibility. Where trade-offs were needed, scope and durability were prioritized. See the Decision Detail table below for per-item reasoning.`
-        : `Selections were made within your stated scope and budget parameters. The Decision Detail table below summarizes the style and scope logic behind each choice.`;
+        ? `Selections are steered toward ${investmentRangeLabel} with limited flexibility. Where trade-offs were needed, scope and durability were prioritized. See the Decision Detail table below for per-item reasoning.`
+        : `Your stated budget of ${investmentRangeLabel} is a stretch for the scope selected. Selections have been steered toward lower-cost options where possible, but some items may still exceed the range. Review the Decision Detail table below and consider adjusting scope or budget to align expectations.`;
 
   const blocks: NarrativeBlock[] =
     llmBlocks && llmBlocks.length >= 4
@@ -127,7 +127,11 @@ export function buildDesignConceptFromAgentOutput(
       : [
           {
             title: "Targeting Your Investment Range",
-            body: `Every selection has been curated to align with ${investmentRangeLabel}. Budget status: ${pmOutput.budgetStatus}. We've balanced focal-point pieces with cost-effective elements so the overall investment stays within range.`,
+            body: pmOutput.budgetStatus === "mismatch"
+              ? `Your stated budget of ${investmentRangeLabel} is a stretch for the scope selected. Selections have been steered toward lower-cost options where possible—but staying fully within this range may not be feasible. Consider adjusting your scope or budget to close the gap.`
+              : pmOutput.budgetStatus === "tight"
+                ? `Selections are steered toward ${investmentRangeLabel}. The budget is tight for the scope, so lower-cost options were favored where possible without compromising the design intent.`
+                : `Selections have been curated to align with ${investmentRangeLabel}. We've balanced focal-point pieces with cost-effective supporting elements to keep the overall investment on track.`,
           },
           {
             title: "Strategic Trade-offs",
