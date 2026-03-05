@@ -24,7 +24,7 @@ export default function CreateProjectPage() {
             Name your project
           </h1>
           <p className="text-sm text-black/70 leading-relaxed">
-            This helps you keep multiple projects organized (and you can change it later).
+            If you have multiple projects, this helps you keep them organized.
           </p>
         </section>
 
