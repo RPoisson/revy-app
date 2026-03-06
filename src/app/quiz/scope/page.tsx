@@ -124,6 +124,12 @@ function BathroomVanityInputs({
     onAnswersChange((prev) => ({ ...prev, [key]: values }));
   }
 
+  /** Double sink requires 48" or wider. "custom" is allowed (unknown width). */
+  function canFitDouble(sizeId: string): boolean {
+    if (sizeId === "custom" || sizeId === "") return true;
+    return parseInt(sizeId, 10) >= 48;
+  }
+
   return (
     <div className="space-y-8">
       {rooms.map((roomId) => {
@@ -150,40 +156,7 @@ function BathroomVanityInputs({
                 <div key={`${roomId}-${i}`} className="rounded-lg border border-black/10 bg-white/50 p-4 space-y-3">
                   <p className="text-sm font-medium text-black/90">{displayLabel}</p>
 
-                  {/* Vanity type */}
-                  <div className="space-y-1.5">
-                    <p className="text-xs text-black/60">Vanity type</p>
-                    <div className="flex flex-wrap gap-2">
-                      {VANITY_TYPE_OPTIONS.filter(
-                        (opt) => !isPowder || opt.id === "single"
-                      ).map((opt) => (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => {
-                            const next = [...types];
-                            next[i] = opt.id;
-                            setForRoom(bathroomVanityTypeKey(roomId), next);
-                          }}
-                          disabled={readOnly}
-                          className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                            selectedType === opt.id
-                              ? "border-black bg-black text-white"
-                              : "border-black/20 bg-white text-black hover:bg-black/5"
-                          } disabled:opacity-70`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                      {isPowder && (
-                        <span className="text-xs text-black/40 self-center ml-1">
-                          Powder rooms have a single sink
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Vanity size */}
+                  {/* Vanity width — asked first */}
                   <div className="space-y-1.5">
                     <p className="text-xs text-black/60">Approximate vanity width</p>
                     <div className="flex flex-wrap gap-2">
@@ -192,9 +165,21 @@ function BathroomVanityInputs({
                           key={opt.id}
                           type="button"
                           onClick={() => {
-                            const next = [...sizes];
-                            next[i] = opt.id;
-                            setForRoom(bathroomVanitySizeKey(roomId), next);
+                            const nextSizes = [...sizes];
+                            nextSizes[i] = opt.id;
+                            // If switching to a width that can't support double, reset type to single
+                            const doubleOk = canFitDouble(opt.id);
+                            if (!doubleOk && types[i] === "double") {
+                              const nextTypes = [...types];
+                              nextTypes[i] = "single";
+                              onAnswersChange((prev) => ({
+                                ...prev,
+                                [bathroomVanitySizeKey(roomId)]: nextSizes,
+                                [bathroomVanityTypeKey(roomId)]: nextTypes,
+                              }));
+                            } else {
+                              setForRoom(bathroomVanitySizeKey(roomId), nextSizes);
+                            }
                           }}
                           disabled={readOnly}
                           className={`rounded-full border px-3 py-1.5 text-sm transition ${
@@ -207,6 +192,49 @@ function BathroomVanityInputs({
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Vanity type — depends on width */}
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-black/60">Vanity type</p>
+                    <div className="flex flex-wrap gap-2">
+                      {VANITY_TYPE_OPTIONS.map((opt) => {
+                        const doubleDisabled =
+                          opt.id === "double" && (isPowder || (selectedSize !== "" && !canFitDouble(selectedSize)));
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => {
+                              if (doubleDisabled) return;
+                              const next = [...types];
+                              next[i] = opt.id;
+                              setForRoom(bathroomVanityTypeKey(roomId), next);
+                            }}
+                            disabled={readOnly || doubleDisabled}
+                            className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                              selectedType === opt.id
+                                ? "border-black bg-black text-white"
+                                : doubleDisabled
+                                  ? "border-black/10 bg-black/5 text-black/30 cursor-not-allowed"
+                                  : "border-black/20 bg-white text-black hover:bg-black/5"
+                            } disabled:cursor-not-allowed`}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {isPowder && (
+                      <p className="text-xs text-black/40">
+                        Powder rooms have a single sink
+                      </p>
+                    )}
+                    {!isPowder && selectedSize !== "" && !canFitDouble(selectedSize) && (
+                      <p className="text-xs text-black/40">
+                        Double sink requires a vanity width of 48&quot; or larger
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -240,16 +268,6 @@ function BathroomDrainInputs({
 
   return (
     <div className="space-y-8">
-      {/* Tooltip explainer */}
-      <div className="rounded-lg border border-black/10 bg-white/50 p-4 text-sm text-black/70 leading-relaxed">
-        <p className="font-medium text-black/90 mb-1">How to determine drain position</p>
-        <p>Stand at the open end of the alcove tub, facing the back wall. Look down at the drain:</p>
-        <ul className="list-disc ml-5 mt-1 space-y-0.5">
-          <li><strong>Left drain</strong> — the drain is on your left side</li>
-          <li><strong>Right drain</strong> — the drain is on your right side</li>
-        </ul>
-      </div>
-
       {rooms.map((roomId) => {
         const count = getRoomCount(answers, roomId);
         const configs = answers[bathroomConfigKey(roomId)] ?? [];
