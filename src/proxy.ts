@@ -19,7 +19,18 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const { response, user } = await updateSession(request);
+  let response: NextResponse;
+  let user;
+  try {
+    const result = await updateSession(request);
+    response = result.response;
+    user = result.user;
+  } catch {
+    // If Supabase is misconfigured, redirect to login rather than 500
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    return NextResponse.redirect(loginUrl);
+  }
 
   // Not authenticated — redirect to login
   if (!user) {
