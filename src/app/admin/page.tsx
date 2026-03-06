@@ -46,11 +46,26 @@ export default function AdminUsersPage() {
         console.error("Failed to update access:", error.message);
         return;
       }
+
+      // When approving a user, send them a magic link so they can log in
+      if (status === "active") {
+        const target = users.find((u) => u.id === userId);
+        if (target?.email) {
+          const { error: otpError } = await supabase.auth.signInWithOtp({
+            email: target.email,
+            options: { shouldCreateUser: false },
+          });
+          if (otpError) {
+            console.error("Failed to send login email:", otpError.message);
+          }
+        }
+      }
+
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, access_status: status } : u))
       );
     },
-    [supabase]
+    [supabase, users]
   );
 
   const updateRole = useCallback(

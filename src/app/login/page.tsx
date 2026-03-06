@@ -208,7 +208,7 @@ function LoginInner() {
         </div>
 
         <div className="text-center">
-          <p className="text-xs text-black/40">Secure access for Studio clients.</p>
+          <p className="text-xs text-black/40">Secure access for Revy clients.</p>
         </div>
       </div>
     </main>
