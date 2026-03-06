@@ -14,6 +14,21 @@ export function bathroomConfigKey(roomId: string): string {
   return `bathroom_config_${roomId}`;
 }
 
+/** Answer key for vanity type (single/double) per bathroom instance. */
+export function bathroomVanityTypeKey(roomId: string): string {
+  return `bathroom_vanity_type_${roomId}`;
+}
+
+/** Answer key for vanity size per bathroom instance. */
+export function bathroomVanitySizeKey(roomId: string): string {
+  return `bathroom_vanity_size_${roomId}`;
+}
+
+/** Answer key for alcove tub drain position per bathroom instance. */
+export function bathroomDrainKey(roomId: string): string {
+  return `bathroom_drain_${roomId}`;
+}
+
 /** Answer key for each bathroom room's custom names. answers[bathroomNamesKey(roomId)] = string[] (one per instance). */
 export function bathroomNamesKey(roomId: string): string {
   return `bathroom_names_${roomId}`;
@@ -46,6 +61,30 @@ export const BATHROOM_CONFIG_OPTIONS = [
   { id: "shower_only" as const, label: "Shower only" },
   { id: "tub_and_shower_combined" as const, label: "Combined shower and tub (alcove)" },
   { id: "tub_and_shower_separate" as const, label: "Separate shower and stand-alone tub" },
+] as const;
+
+/** Vanity type options. Powder rooms only show single. */
+export const VANITY_TYPE_OPTIONS = [
+  { id: "single" as const, label: "Single sink" },
+  { id: "double" as const, label: "Double sink" },
+] as const;
+
+/** Vanity size options — helps determine stock vs custom feasibility. */
+export const VANITY_SIZE_OPTIONS = [
+  { id: "24" as const, label: '24"' },
+  { id: "30" as const, label: '30"' },
+  { id: "36" as const, label: '36"' },
+  { id: "48" as const, label: '48"' },
+  { id: "60" as const, label: '60"' },
+  { id: "72" as const, label: '72"' },
+  { id: "custom" as const, label: "Custom / not sure" },
+] as const;
+
+/** Alcove tub drain position options. */
+export const DRAIN_POSITION_OPTIONS = [
+  { id: "left" as const, label: "Left drain" },
+  { id: "right" as const, label: "Right drain" },
+  { id: "unsure" as const, label: "Not sure" },
 ] as const;
 
 /** All room option IDs that support a quantity (multiple instances). When multiple are added, each must be named. */
@@ -103,6 +142,21 @@ function hasAnyRoomSelectedForNaming(answers: Record<string, string[]>): boolean
 function hasAnyBathroomConfigSelected(answers: Record<string, string[]>): boolean {
   const rooms = answers[ROOMS_ANSWER_KEY] ?? [];
   return BATHROOM_CONFIG_ROOM_IDS.some((id) => rooms.includes(id));
+}
+
+function hasAnyBathroomSelected(answers: Record<string, string[]>): boolean {
+  const rooms = answers[ROOMS_ANSWER_KEY] ?? [];
+  return BATHROOM_ROOM_IDS.some((id) => rooms.includes(id));
+}
+
+function hasAnyAlcoveTub(answers: Record<string, string[]>): boolean {
+  const rooms = answers[ROOMS_ANSWER_KEY] ?? [];
+  for (const roomId of BATHROOM_CONFIG_ROOM_IDS) {
+    if (!rooms.includes(roomId)) continue;
+    const configs = answers[bathroomConfigKey(roomId)] ?? [];
+    if (configs.some((c) => c === "tub_and_shower_combined")) return true;
+  }
+  return false;
 }
 
 export const SCOPE_QUESTIONS: Question[] = [
@@ -261,6 +315,29 @@ export const SCOPE_QUESTIONS: Question[] = [
     options: [], // Rendered as custom UI: one section per bathroom instance with 3 options each
   },
 
+  {
+    id: "bathroom_vanity",
+    title: "What type of vanity for each bathroom?",
+    subtitle: "Choose single or double sink and the approximate size. This helps us determine if a stock vanity will work or if custom is needed.",
+    type: "single-image",
+    allowMultiple: false,
+    layout: "stack",
+    required: true,
+    showIf: (answers) => hasAnyBathroomSelected(answers as Record<string, string[]>),
+    options: [], // Rendered as custom UI per bathroom instance
+  },
+
+  {
+    id: "bathroom_drain",
+    title: "Which side is the drain for your alcove tub?",
+    subtitle: "Stand at the open end of the tub (facing the wall). If the drain is on your left, it's a left drain. If on your right, it's a right drain.",
+    type: "single-image",
+    allowMultiple: false,
+    layout: "stack",
+    required: true,
+    showIf: (answers) => hasAnyAlcoveTub(answers as Record<string, string[]>),
+    options: [], // Rendered as custom UI per bathroom instance with alcove tub
+  },
 
   {
     id: "scope_level",

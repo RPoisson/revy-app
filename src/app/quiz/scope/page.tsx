@@ -8,11 +8,18 @@ import QuestionOptions from "@/app/quiz/components/QuestionOptions";
 import {
   SCOPE_QUESTIONS,
   bathroomConfigKey,
+  bathroomVanityTypeKey,
+  bathroomVanitySizeKey,
+  bathroomDrainKey,
   roomNamesKey,
   COUNTABLE_OPTION_IDS,
   ROOM_OPTION_LABELS,
   BATHROOM_CONFIG_ROOM_IDS,
+  BATHROOM_ROOM_IDS,
   BATHROOM_CONFIG_OPTIONS,
+  VANITY_TYPE_OPTIONS,
+  VANITY_SIZE_OPTIONS,
+  DRAIN_POSITION_OPTIONS,
 } from "@/app/quiz/scope/questions";
 import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 import Link from "next/link";
@@ -77,6 +84,220 @@ function BathroomSetupInputs({
                           const next = [...configs];
                           next[i] = opt.id;
                           setConfigForRoom(roomId, next);
+                        }}
+                        disabled={readOnly}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                          selected === opt.id
+                            ? "border-black bg-black text-white"
+                            : "border-black/20 bg-white text-black hover:bg-black/5"
+                        } disabled:opacity-70`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function BathroomVanityInputs({
+  answers,
+  onAnswersChange,
+  readOnly,
+}: {
+  answers: QuizAnswers;
+  onAnswersChange: (updater: (prev: QuizAnswers) => QuizAnswers) => void;
+  readOnly: boolean;
+}) {
+  // All bathroom rooms including powder
+  const rooms = (answers["rooms"] ?? []).filter((id) =>
+    BATHROOM_ROOM_IDS.includes(id as (typeof BATHROOM_ROOM_IDS)[number])
+  );
+
+  function setForRoom(key: string, values: string[]) {
+    onAnswersChange((prev) => ({ ...prev, [key]: values }));
+  }
+
+  return (
+    <div className="space-y-8">
+      {rooms.map((roomId) => {
+        const count = getRoomCount(answers, roomId);
+        const isPowder = roomId === "powder";
+        const typeRaw = answers[bathroomVanityTypeKey(roomId)] ?? [];
+        const types: string[] = [...typeRaw];
+        while (types.length < count) types.push(isPowder ? "single" : "");
+        const sizeRaw = answers[bathroomVanitySizeKey(roomId)] ?? [];
+        const sizes: string[] = [...sizeRaw];
+        while (sizes.length < count) sizes.push("");
+        const names = answers[roomNamesKey(roomId)] ?? [];
+        const baseLabel = ROOM_OPTION_LABELS[roomId] ?? roomId;
+
+        return (
+          <div key={roomId} className="space-y-4">
+            {Array.from({ length: count }, (_, i) => {
+              const instanceLabel = count === 1 ? baseLabel : `${baseLabel} (${i + 1})`;
+              const displayLabel = (names[i] && String(names[i]).trim()) || instanceLabel;
+              const selectedType = types[i] ?? "";
+              const selectedSize = sizes[i] ?? "";
+
+              return (
+                <div key={`${roomId}-${i}`} className="rounded-lg border border-black/10 bg-white/50 p-4 space-y-3">
+                  <p className="text-sm font-medium text-black/90">{displayLabel}</p>
+
+                  {/* Vanity type */}
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-black/60">Vanity type</p>
+                    <div className="flex flex-wrap gap-2">
+                      {VANITY_TYPE_OPTIONS.filter(
+                        (opt) => !isPowder || opt.id === "single"
+                      ).map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            const next = [...types];
+                            next[i] = opt.id;
+                            setForRoom(bathroomVanityTypeKey(roomId), next);
+                          }}
+                          disabled={readOnly}
+                          className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                            selectedType === opt.id
+                              ? "border-black bg-black text-white"
+                              : "border-black/20 bg-white text-black hover:bg-black/5"
+                          } disabled:opacity-70`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                      {isPowder && (
+                        <span className="text-xs text-black/40 self-center ml-1">
+                          Powder rooms have a single sink
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Vanity size */}
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-black/60">Approximate vanity width</p>
+                    <div className="flex flex-wrap gap-2">
+                      {VANITY_SIZE_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            const next = [...sizes];
+                            next[i] = opt.id;
+                            setForRoom(bathroomVanitySizeKey(roomId), next);
+                          }}
+                          disabled={readOnly}
+                          className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                            selectedSize === opt.id
+                              ? "border-black bg-black text-white"
+                              : "border-black/20 bg-white text-black hover:bg-black/5"
+                          } disabled:opacity-70`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function BathroomDrainInputs({
+  answers,
+  onAnswersChange,
+  readOnly,
+}: {
+  answers: QuizAnswers;
+  onAnswersChange: (updater: (prev: QuizAnswers) => QuizAnswers) => void;
+  readOnly: boolean;
+}) {
+  const [showTooltip, setShowTooltip] = useState<string | null>(null);
+
+  // Only bathrooms with alcove tub config
+  const rooms = (answers["rooms"] ?? []).filter((id) =>
+    BATHROOM_CONFIG_ROOM_IDS.includes(id as (typeof BATHROOM_CONFIG_ROOM_IDS)[number])
+  );
+
+  function setDrainForRoom(roomId: string, values: string[]) {
+    onAnswersChange((prev) => ({ ...prev, [bathroomDrainKey(roomId)]: values }));
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Tooltip explainer */}
+      <div className="rounded-lg border border-black/10 bg-white/50 p-4 text-sm text-black/70 leading-relaxed">
+        <p className="font-medium text-black/90 mb-1">How to determine drain position</p>
+        <p>Stand at the open end of the alcove tub, facing the back wall. Look down at the drain:</p>
+        <ul className="list-disc ml-5 mt-1 space-y-0.5">
+          <li><strong>Left drain</strong> — the drain is on your left side</li>
+          <li><strong>Right drain</strong> — the drain is on your right side</li>
+        </ul>
+      </div>
+
+      {rooms.map((roomId) => {
+        const count = getRoomCount(answers, roomId);
+        const configs = answers[bathroomConfigKey(roomId)] ?? [];
+        const drainRaw = answers[bathroomDrainKey(roomId)] ?? [];
+        const drains: string[] = [...drainRaw];
+        while (drains.length < count) drains.push("");
+        const names = answers[roomNamesKey(roomId)] ?? [];
+        const baseLabel = ROOM_OPTION_LABELS[roomId] ?? roomId;
+
+        return (
+          <div key={roomId} className="space-y-4">
+            {Array.from({ length: count }, (_, i) => {
+              // Only show for alcove tub instances
+              if (configs[i] !== "tub_and_shower_combined") return null;
+              const instanceLabel = count === 1 ? baseLabel : `${baseLabel} (${i + 1})`;
+              const displayLabel = (names[i] && String(names[i]).trim()) || instanceLabel;
+              const selected = drains[i] ?? "";
+              const tooltipKey = `${roomId}-${i}`;
+
+              return (
+                <div key={tooltipKey} className="rounded-lg border border-black/10 bg-white/50 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-black/90">{displayLabel}</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowTooltip(showTooltip === tooltipKey ? null : tooltipKey)}
+                      className="text-black/40 hover:text-black/70 transition"
+                      aria-label="How to determine drain position"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                  {showTooltip === tooltipKey && (
+                    <p className="text-xs text-black/60 leading-relaxed">
+                      Stand at the open end of the tub facing the wall. If the drain is on your left, choose &ldquo;Left drain.&rdquo; If on your right, choose &ldquo;Right drain.&rdquo;
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {DRAIN_POSITION_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          const next = [...drains];
+                          next[i] = opt.id;
+                          setDrainForRoom(roomId, next);
                         }}
                         disabled={readOnly}
                         className={`rounded-full border px-3 py-1.5 text-sm transition ${
@@ -194,6 +415,19 @@ export default function ScopePage() {
     saveAnswers(answers, currentProjectId ?? undefined);
   }, [answers, currentProjectId]);
 
+  // Pre-fill powder room vanity type to "single" when landing on the vanity step
+  useEffect(() => {
+    if (question?.id !== "bathroom_vanity") return;
+    const rooms = answers["rooms"] ?? [];
+    if (!rooms.includes("powder")) return;
+    const key = bathroomVanityTypeKey("powder");
+    const current = answers[key] ?? [];
+    const count = getRoomCount(answers, "powder");
+    if (current.length >= count && current.every((v) => v === "single")) return;
+    const filled = Array.from({ length: count }, () => "single");
+    setAnswers((prev) => ({ ...prev, [key]: filled }));
+  }, [question?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Pre-fill default room names when user lands on the "Name each space" step and names are not yet set
   useEffect(() => {
     if (question?.id !== "room_names") return;
@@ -262,6 +496,43 @@ export default function ScopePage() {
       return true;
     }
 
+    // ✅ Bathroom vanity: require type + size per bathroom instance (all bathrooms incl. powder)
+    if (question.id === "bathroom_vanity") {
+      const rooms = (answers["rooms"] ?? []).filter((id) =>
+        BATHROOM_ROOM_IDS.includes(id as (typeof BATHROOM_ROOM_IDS)[number])
+      );
+      const validTypes = new Set<string>(VANITY_TYPE_OPTIONS.map((o) => o.id));
+      const validSizes = new Set<string>(VANITY_SIZE_OPTIONS.map((o) => o.id));
+      for (const roomId of rooms) {
+        const count = getRoomCount(answers, roomId);
+        const types = answers[bathroomVanityTypeKey(roomId)] ?? [];
+        const sizes = answers[bathroomVanitySizeKey(roomId)] ?? [];
+        for (let i = 0; i < count; i++) {
+          if (!types[i] || !validTypes.has(types[i] as string)) return false;
+          if (!sizes[i] || !validSizes.has(sizes[i] as string)) return false;
+        }
+      }
+      return true;
+    }
+
+    // ✅ Bathroom drain: require selection per alcove-tub instance
+    if (question.id === "bathroom_drain") {
+      const rooms = (answers["rooms"] ?? []).filter((id) =>
+        BATHROOM_CONFIG_ROOM_IDS.includes(id as (typeof BATHROOM_CONFIG_ROOM_IDS)[number])
+      );
+      const validDrains = new Set<string>(DRAIN_POSITION_OPTIONS.map((o) => o.id));
+      for (const roomId of rooms) {
+        const count = getRoomCount(answers, roomId);
+        const configs = answers[bathroomConfigKey(roomId)] ?? [];
+        const drains = answers[bathroomDrainKey(roomId)] ?? [];
+        for (let i = 0; i < count; i++) {
+          if (configs[i] !== "tub_and_shower_combined") continue;
+          if (!drains[i] || !validDrains.has(drains[i] as string)) return false;
+        }
+      }
+      return true;
+    }
+
     return baseOk;
   }, [answers, question]);
 
@@ -282,10 +553,17 @@ export default function ScopePage() {
             const { [qtyKey(optionId)]: _, ...rest } = next as Record<string, string[]>;
             next = rest as QuizAnswers;
           }
-          if ((BATHROOM_CONFIG_ROOM_IDS as readonly string[]).includes(optionId)) {
-            const key = bathroomConfigKey(optionId);
-            const { [key]: __, ...rest } = next as Record<string, string[]>;
-            next = rest as QuizAnswers;
+          if ((BATHROOM_ROOM_IDS as readonly string[]).includes(optionId)) {
+            const keysToRemove = [
+              bathroomConfigKey(optionId),
+              bathroomVanityTypeKey(optionId),
+              bathroomVanitySizeKey(optionId),
+              bathroomDrainKey(optionId),
+            ];
+            for (const key of keysToRemove) {
+              const { [key]: _, ...rest } = next as Record<string, string[]>;
+              next = rest as QuizAnswers;
+            }
           }
           const { [roomNamesKey(optionId)]: ___, ...restNames } = next as Record<string, string[]>;
           next = restNames as QuizAnswers;
@@ -399,6 +677,18 @@ export default function ScopePage() {
         <section className="mt-2">
           {question.id === "bathroom_setup" ? (
             <BathroomSetupInputs
+              answers={answers}
+              onAnswersChange={setAnswers}
+              readOnly={false}
+            />
+          ) : question.id === "bathroom_vanity" ? (
+            <BathroomVanityInputs
+              answers={answers}
+              onAnswersChange={setAnswers}
+              readOnly={false}
+            />
+          ) : question.id === "bathroom_drain" ? (
+            <BathroomDrainInputs
               answers={answers}
               onAnswersChange={setAnswers}
               readOnly={false}
