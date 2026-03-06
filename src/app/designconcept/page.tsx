@@ -14,9 +14,11 @@ import { RoomSelector } from "./RoomSelector";
 import { MoodboardCanvasView } from "./MoodboardCanvasView";
 import { SectionHeader, CARD_STYLE } from "./components/SectionHeader";
 import { useProjects } from "@/context/ProjectContext";
-import { getDesignsCreated } from "@/lib/designsCreatedStore";
-import { getAnswers, type QuizAnswers } from "@/app/quiz/lib/answersStore";
-import { getDesignConceptOutput, type DesignConceptOutput } from "@/lib/designConceptStore";
+import { useAnswers } from "@/context/AnswersContext";
+import { createClient } from "@/lib/supabase/client";
+import { getDesignOutput } from "@/lib/supabase/designOutput";
+import type { DesignConceptOutput } from "@/lib/designConceptStore";
+import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 import { buildMoodboardRoomsFromScope, type MoodboardRoomItem } from "./buildMoodboardRooms";
 import { scoreQuiz } from "@/app/scoring";
 import { BUDGET_QUESTIONS } from "@/app/quiz/budget/questions";
@@ -32,21 +34,19 @@ function getInvestmentRangeLabel(answers: QuizAnswers): string {
   return opt?.label ?? PLACEHOLDER_INVESTMENT_LABEL;
 }
 
-/** Rooms to show in selector: from scope (custom/default names) or fallback to ALL_ROOMS. */
-function useMoodboardRoomsList(designsCreated: boolean, projectId: string | undefined) {
-  return useMemo(() => {
+export default function DesignConceptPage() {
+  const { currentProjectId, getDesignsCreated } = useProjects();
+  const { getAnswers } = useAnswers();
+  const supabase = useMemo(() => createClient(), []);
+  const designsCreated = getDesignsCreated(currentProjectId);
+
+  const roomsList = useMemo(() => {
     if (!designsCreated) return ALL_ROOMS;
-    const answers = getAnswers(projectId);
+    const answers = getAnswers(currentProjectId ?? undefined);
     const scopeRooms = buildMoodboardRoomsFromScope(answers ?? {});
     if (scopeRooms.length > 0) return scopeRooms;
     return ALL_ROOMS;
-  }, [designsCreated, projectId]);
-}
-
-export default function DesignConceptPage() {
-  const { currentProjectId } = useProjects();
-  const designsCreated = getDesignsCreated(currentProjectId);
-  const roomsList = useMoodboardRoomsList(designsCreated, currentProjectId ?? undefined);
+  }, [designsCreated, currentProjectId, getAnswers]);
 
   const firstId = useMemo(
     () => (Array.isArray(roomsList) && roomsList.length > 0 ? (roomsList[0] as { id: string }).id : ALL_ROOMS[0].id),
@@ -59,33 +59,29 @@ export default function DesignConceptPage() {
     if (!ids.has(selectedRoomId)) setSelectedRoomId(firstId);
   }, [roomsList, selectedRoomId, firstId]);
 
-  // Load from localStorage only on client so we get the stored LLM output (server has no localStorage)
+  // Load design output from Supabase
   const [agentOutput, setAgentOutput] = useState<DesignConceptOutput | null>(null);
   useEffect(() => {
-    const stored = getDesignConceptOutput(currentProjectId ?? undefined) ?? null;
-    setAgentOutput(stored);
-    console.info("[Revy Design Concept]", {
-      currentProjectId: currentProjectId ?? "(null)",
-      designsCreated,
-      hasStoredOutput: !!stored,
-      hasPmOutput: !!stored?.pmOutput,
-      selectionsCount: stored?.pmOutput ? Object.keys(stored.pmOutput.selectionsBySlot ?? {}).length : 0,
-      hasSummaryBlocks: !!stored?.summaryBlocks?.length,
+    if (!currentProjectId) {
+      setAgentOutput(null);
+      return;
+    }
+    let cancelled = false;
+    getDesignOutput(supabase, currentProjectId).then((result) => {
+      if (cancelled) return;
+      if (result) {
+        const output = result.output as unknown as DesignConceptOutput;
+        setAgentOutput(output?.pmOutput ? output : null);
+      } else {
+        setAgentOutput(null);
+      }
     });
-  }, [currentProjectId]);
-  // Re-read after a short delay to pick up data written right before router.push (same tick)
-  useEffect(() => {
-    if (!currentProjectId) return;
-    const t = window.setTimeout(() => {
-      const stored = getDesignConceptOutput(currentProjectId) ?? null;
-      if (stored) setAgentOutput(stored);
-    }, 100);
-    return () => window.clearTimeout(t);
-  }, [currentProjectId]);
+    return () => { cancelled = true; };
+  }, [currentProjectId, supabase]);
 
   const answers = useMemo(
     () => getAnswers(currentProjectId ?? undefined) ?? undefined,
-    [currentProjectId]
+    [currentProjectId, getAnswers]
   );
 
   const data: DesignConceptDetail = useMemo(() => {

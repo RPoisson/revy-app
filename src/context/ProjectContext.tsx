@@ -9,14 +9,33 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { createClient } from "@/lib/supabase/client";
 import {
-  getProjects,
-  getCurrentProjectId,
-  createProject as createProjectInStore,
-  updateProject as updateProjectInStore,
-  type Project,
-  type ProjectStatus,
-} from "@/lib/projectStore";
+  fetchProjects,
+  createProject as createProjectInDb,
+  updateProject as updateProjectInDb,
+  deleteProject as deleteProjectInDb,
+  type ProjectRecord,
+} from "@/lib/supabase/projects";
+
+export type Project = {
+  id: string;
+  name: string;
+  status: "draft" | "in_progress" | "complete" | "archived";
+  createdAt: string;
+  designsCreatedAt: string | null;
+};
+
+function toProject(row: ProjectRecord): Project {
+  return {
+    id: row.id,
+    name: row.name,
+    status: row.status,
+    createdAt: row.created_at,
+    designsCreatedAt: row.designs_created_at,
+  };
+}
 
 const CURRENT_PROJECT_KEY = "revy.currentProjectId.v1";
 
@@ -31,77 +50,112 @@ type ProjectContextValue = {
   deleteProject: (id: string) => void;
   getDesignsCreated: (projectId: string | null | undefined) => boolean;
   setDesignsCreated: (projectId: string | null | undefined, value: boolean) => void;
-  useSupabase: false;
 };
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const supabase = useMemo(() => createClient(), []);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [currentId, setCurrentId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(CURRENT_PROJECT_KEY);
+  });
 
   const refresh = useCallback(async () => {
-    setProjects(getProjects());
-    setCurrentId(getCurrentProjectId());
-  }, []);
+    if (!user) {
+      setProjects([]);
+      return;
+    }
+    const rows = await fetchProjects(supabase);
+    const mapped = rows.map(toProject);
+    setProjects(mapped);
+    // If currentId is no longer in the list, reset
+    if (currentId && !mapped.some((p) => p.id === currentId)) {
+      const first = mapped[0]?.id ?? null;
+      setCurrentId(first);
+      if (typeof window !== "undefined") {
+        if (first) window.localStorage.setItem(CURRENT_PROJECT_KEY, first);
+        else window.localStorage.removeItem(CURRENT_PROJECT_KEY);
+      }
+    }
+  }, [user, supabase, currentId]);
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const setCurrent = useCallback(
-    (id: string | null) => {
-      if (typeof window !== "undefined") {
-        if (id == null) window.localStorage.removeItem(CURRENT_PROJECT_KEY);
-        else window.localStorage.setItem(CURRENT_PROJECT_KEY, id);
-      }
-      setCurrentId(id);
-    },
-    []
-  );
+  const setCurrent = useCallback((id: string | null) => {
+    setCurrentId(id);
+    if (typeof window !== "undefined") {
+      if (id == null) window.localStorage.removeItem(CURRENT_PROJECT_KEY);
+      else window.localStorage.setItem(CURRENT_PROJECT_KEY, id);
+    }
+  }, []);
 
   const createProject = useCallback(
-    (name: string): Promise<Project | null> => {
-      const project = createProjectInStore(name);
-      setProjects(getProjects());
-      setCurrentId(project.id);
-      return Promise.resolve(project);
+    async (name: string): Promise<Project | null> => {
+      const row = await createProjectInDb(supabase, name);
+      if (!row) return null;
+      const project = toProject(row);
+      setProjects((prev) => [project, ...prev]);
+      setCurrent(project.id);
+      return project;
     },
-    [setCurrent]
+    [supabase, setCurrent]
   );
 
   const updateProject = useCallback(
-    (id: string, updates: Partial<Pick<Project, "name" | "status">>) => {
-      updateProjectInStore(id, updates);
-      setProjects(getProjects());
+    async (id: string, updates: Partial<Pick<Project, "name" | "status">>) => {
+      await updateProjectInDb(supabase, id, updates);
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      );
     },
-    []
+    [supabase]
   );
 
   const deleteProject = useCallback(
-    (id: string) => {
-      const { deleteProject: deleteProjectInStore } = require("@/lib/projectStore") as typeof import("@/lib/projectStore");
-      deleteProjectInStore(id);
-      setProjects(getProjects());
-      setCurrentId(getCurrentProjectId());
+    async (id: string) => {
+      await deleteProjectInDb(supabase, id);
+      setProjects((prev) => {
+        const next = prev.filter((p) => p.id !== id);
+        if (currentId === id) {
+          const first = next[0]?.id ?? null;
+          setCurrent(first);
+        }
+        return next;
+      });
     },
-    [currentId, projects, setCurrent]
+    [supabase, currentId, setCurrent]
   );
 
   const getDesignsCreated = useCallback(
     (projectId: string | null | undefined): boolean => {
       if (!projectId) return false;
-      return require("@/lib/designsCreatedStore").getDesignsCreated(projectId);
+      const p = projects.find((proj) => proj.id === projectId);
+      return !!p?.designsCreatedAt;
     },
-    []
+    [projects]
   );
 
   const setDesignsCreated = useCallback(
-    (projectId: string | null | undefined, value: boolean) => {
+    async (projectId: string | null | undefined, value: boolean) => {
       if (!projectId) return;
-      require("@/lib/designsCreatedStore").setDesignsCreated(projectId, value);
+      if (value) {
+        const { setDesignsCreated: setInDb } = await import("@/lib/supabase/projects");
+        await setInDb(supabase, projectId);
+      }
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === projectId
+            ? { ...p, designsCreatedAt: value ? new Date().toISOString() : null }
+            : p
+        )
+      );
     },
-    []
+    [supabase]
   );
 
   const value = useMemo<ProjectContextValue>(
@@ -116,7 +170,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       deleteProject,
       getDesignsCreated,
       setDesignsCreated,
-      useSupabase: false,
     }),
     [projects, currentId, setCurrent, createProject, updateProject, refresh, deleteProject, getDesignsCreated, setDesignsCreated]
   );

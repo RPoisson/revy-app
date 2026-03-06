@@ -5,54 +5,88 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { createClient } from "@/lib/supabase/client";
 import {
-  getAnswers as getAnswersFromStore,
-  saveAnswers as saveAnswersLocal,
-  clearAnswers as clearAnswersLocal,
+  getProjectAnswers,
+  saveProjectAnswers,
   type QuizAnswers,
-} from "@/app/quiz/lib/answersStore";
+} from "@/lib/supabase/answers";
 
 type AnswersContextValue = {
   getAnswers: (projectId: string | null | undefined) => QuizAnswers;
   saveAnswers: (answers: QuizAnswers, projectId: string | null | undefined) => void;
   clearAnswers: (projectId: string | null | undefined) => void;
-  loadAnswersFromSupabase: (_projectId: string) => Promise<void>;
-  loadingProjectId: null;
+  loadAnswersFromSupabase: (projectId: string) => Promise<void>;
+  loadingProjectId: string | null;
 };
 
 const AnswersContext = createContext<AnswersContextValue | null>(null);
 
 export function AnswersProvider({ children }: { children: ReactNode }) {
-  // Supabase-backed answers are intentionally disabled for now.
-  // Keep API surface stable so we can re-enable later without refactors.
-  const [cache] = useState<Record<string, QuizAnswers>>({});
-  const loadAnswersFromSupabase = useCallback(async (_projectId: string) => {}, []);
+  const { user } = useAuth();
+  const supabase = useMemo(() => createClient(), []);
+  const [cache, setCache] = useState<Record<string, QuizAnswers>>({});
+  const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
+  const loadedRef = useRef<Set<string>>(new Set());
+
+  const loadAnswersFromSupabase = useCallback(
+    async (projectId: string) => {
+      if (loadedRef.current.has(projectId)) return;
+      setLoadingProjectId(projectId);
+      const answers = await getProjectAnswers(supabase, projectId);
+      setCache((prev) => ({ ...prev, [projectId]: answers }));
+      loadedRef.current.add(projectId);
+      setLoadingProjectId(null);
+    },
+    [supabase]
+  );
 
   const getAnswers = useCallback(
     (projectId: string | null | undefined): QuizAnswers => {
       if (!projectId) return {};
-      return getAnswersFromStore(projectId);
+      // Trigger async load if we haven't loaded this project yet
+      if (!loadedRef.current.has(projectId)) {
+        loadAnswersFromSupabase(projectId);
+      }
+      return cache[projectId] ?? {};
     },
-    []
+    [cache, loadAnswersFromSupabase]
   );
 
   const saveAnswers = useCallback(
     (answers: QuizAnswers, projectId: string | null | undefined) => {
-      if (!projectId) return;
-      saveAnswersLocal(answers, projectId);
+      if (!projectId || !user) return;
+      // Update cache immediately
+      setCache((prev) => ({ ...prev, [projectId]: answers }));
+      loadedRef.current.add(projectId);
+      // Persist to Supabase (fire-and-forget, but log errors)
+      saveProjectAnswers(supabase, projectId, user.id, answers).catch((err) =>
+        console.error("Failed to save answers:", err)
+      );
     },
-    []
+    [supabase, user]
   );
 
   const clearAnswers = useCallback(
     (projectId: string | null | undefined) => {
-      if (!projectId) return;
-      clearAnswersLocal(projectId);
+      if (!projectId || !user) return;
+      setCache((prev) => {
+        const next = { ...prev };
+        delete next[projectId];
+        return next;
+      });
+      loadedRef.current.delete(projectId);
+      // Save empty answers to Supabase
+      saveProjectAnswers(supabase, projectId, user.id, {}).catch((err) =>
+        console.error("Failed to clear answers:", err)
+      );
     },
-    []
+    [supabase, user]
   );
 
   const value = useMemo<AnswersContextValue>(
@@ -61,9 +95,9 @@ export function AnswersProvider({ children }: { children: ReactNode }) {
       saveAnswers,
       clearAnswers,
       loadAnswersFromSupabase,
-      loadingProjectId: null,
+      loadingProjectId,
     }),
-    [getAnswers, saveAnswers, clearAnswers, loadAnswersFromSupabase]
+    [getAnswers, saveAnswers, clearAnswers, loadAnswersFromSupabase, loadingProjectId]
   );
 
   return (

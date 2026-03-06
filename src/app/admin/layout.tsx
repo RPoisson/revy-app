@@ -1,39 +1,79 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { createClient } from "@/lib/supabase/client";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+function AdminNavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const pathname = usePathname();
+  const active = pathname === href;
+  return (
+    <Link
+      href={href}
+      className={`text-sm font-medium ${active ? "text-black" : "text-black/60 hover:text-black"}`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const supabase = useMemo(() => createClient(), []);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        setIsAdmin(data?.role === "platform_admin");
+      });
+  }, [user, supabase]);
+
+  if (loading || isAdmin === null) {
+    return (
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <p className="text-sm text-black/50">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-sm text-black/70">You don&apos;t have admin access.</p>
+          <Link href="/" className="text-sm font-medium text-black/60 hover:text-black underline">
+            Return to app
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <header className="border-b border-black/10 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="font-[var(--font-playfair)] text-xl text-black">
-            Admin — Support
+            Admin
           </h1>
-          <nav className="flex items-center gap-4 text-sm">
-            <Link href={`${base}/admin`} className="text-black/70 hover:text-black">
-              Dashboard
-            </Link>
-            <Link href={`${base}/admin/support`} className="text-black/70 hover:text-black">
-              Projects
-            </Link>
-            <Link href={`${base}/`} className="text-black/70 hover:text-black">
+          <nav className="flex items-center gap-6">
+            <AdminNavLink href="/admin">Users</AdminNavLink>
+            <AdminNavLink href="/admin/support">Projects</AdminNavLink>
+            <Link href="/" className="text-sm text-black/50 hover:text-black">
               Exit admin
             </Link>
           </nav>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-4 py-10 space-y-4">
-        <h2 className="font-[var(--font-playfair)] text-lg text-black">Admin is disabled</h2>
-        <p className="text-sm text-black/60">
-          Admin tools are disabled until Supabase auth + database are enabled for the product.
-        </p>
-      </main>
+      {children}
     </div>
   );
 }

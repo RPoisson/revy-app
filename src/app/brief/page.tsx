@@ -43,7 +43,9 @@ import { runCreativeDirector } from "@/app/agents/creativeDirectorAgent";
 import { runProjectManagerSelection } from "@/app/agents/projectManagerSelection";
 import type { ProjectManagerSelectionOutput, SelectedProduct } from "@/app/agents/projectManagerAgent.types";
 import { buildMoodboardRoomsFromScope } from "@/app/designconcept/buildMoodboardRooms";
-import { setDesignConceptOutput } from "@/lib/designConceptStore";
+import { saveDesignOutput } from "@/lib/supabase/designOutput";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import type { ArchetypeId } from "@/app/style/styleDNA";
 import { STYLE_DNA } from "@/app/style/styleDNA";
 
@@ -299,6 +301,8 @@ function evalSimpleTrigger(expr: string, ctx: Record<string, any>): boolean {
 
 export default function BriefPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const supabase = useMemo(() => createClient(), []);
   const { currentProjectId, getDesignsCreated, setDesignsCreated } = useProjects();
   const { getAnswers, loadingProjectId } = useAnswers();
 
@@ -471,11 +475,13 @@ export default function BriefPage() {
         };
       }
 
-      setDesignConceptOutput(currentProjectId, {
-        pmOutput,
-        summaryBlocks,
-        investmentRangeLabel,
-      });
+      if (user) {
+        await saveDesignOutput(supabase, currentProjectId, user.id, {
+          pmOutput,
+          summaryBlocks,
+          investmentRangeLabel,
+        }, true);
+      }
       setDesignsCreated(currentProjectId, true);
       router.push("/designconcept");
     } catch (err) {
@@ -743,11 +749,13 @@ const colorMood = resolveOne(answers, masterIndex, "color_mood").label;
         };
       }
 
-      setDesignConceptOutput(currentProjectId, {
-        pmOutput,
-        summaryBlocks,
-        investmentRangeLabel,
-      });
+      if (user) {
+        await saveDesignOutput(supabase, currentProjectId, user.id, {
+          pmOutput,
+          summaryBlocks,
+          investmentRangeLabel,
+        }, true);
+      }
       setDesignsCreated(currentProjectId, true);
       console.info("[Revy] Saved design output for project", currentProjectId, "selections:", Object.keys(pmOutput.selectionsBySlot).length, "summaryBlocks:", summaryBlocks?.length ?? 0);
       router.push("/designconcept");

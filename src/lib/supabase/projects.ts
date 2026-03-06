@@ -27,7 +27,14 @@ export async function getPersonalOrgId(
     .eq("type", "personal")
     .limit(1)
     .maybeSingle();
-  if (error || !data) return null;
+  if (error) {
+    console.error("[Revy] getPersonalOrgId error:", error.message);
+    return null;
+  }
+  if (!data) {
+    console.warn("[Revy] No personal org found for current user");
+    return null;
+  }
   return data.id;
 }
 
@@ -63,7 +70,10 @@ export async function createProject(
     })
     .select()
     .single();
-  if (error) return null;
+  if (error) {
+    console.error("[Revy] createProject insert error:", error.message, error.details);
+    return null;
+  }
   return data as ProjectRecord;
 }
 

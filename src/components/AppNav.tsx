@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { StudioLogo } from "@/components/StudioLogo";
 import { useProjects } from "@/context/ProjectContext";
+import { useAuth } from "@/context/AuthContext";
+import { createClient } from "@/lib/supabase/client";
 
 const designConceptPaths = [
   { href: "/designconcept#executive-summary", label: "Summary" },
@@ -40,10 +42,22 @@ function NavLink({
 export function AppNav() {
   const pathname = usePathname();
   const { projects, currentProject, currentProjectId, setCurrentProjectId } = useProjects();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [designConceptOpen, setDesignConceptOpen] = useState(false);
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const loggedIn = !!user;
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    supabase.from("profiles").select("role").eq("id", user.id).single().then(({ data }) => {
+      setIsAdmin(data?.role === "platform_admin");
+    });
+  }, [user, supabase]);
 
   const quizHref = currentProjectId ? "/quiz/scope" : "/create-project";
   const isQuizActive =
@@ -51,23 +65,10 @@ export function AppNav() {
   const isDesignConceptActive =
     pathname != null && pathname.startsWith("/designconcept");
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const res = await fetch("/api/auth");
-      setLoggedIn(res.ok);
-    } catch {
-      setLoggedIn(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setLoggedIn(false);
-    window.location.href = "/";
+    await signOut();
+    router.push("/login");
+    router.refresh();
   };
 
   // Don't show nav on login page (pathname can be null during client nav)
@@ -212,6 +213,8 @@ export function AppNav() {
 
             <NavLink href="/account">Account</NavLink>
 
+            {isAdmin && <NavLink href="/admin">Admin</NavLink>}
+
             {loggedIn === true ? (
               <button
                 type="button"
@@ -314,6 +317,17 @@ export function AppNav() {
                 Account & projects →
               </Link>
             </div>
+            {isAdmin && (
+              <div className="pt-2 border-t border-black/10">
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="block py-2 text-sm font-medium text-purple-700"
+                >
+                  Admin
+                </Link>
+              </div>
+            )}
             <div className="pt-2 border-t border-black/10">
               {loggedIn === true ? (
                 <button

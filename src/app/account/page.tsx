@@ -37,11 +37,13 @@ export default function AccountPage() {
 
   }, []);
 
-  const handleCreate = useCallback(() => {
+  const handleCreate = useCallback(async () => {
     const name = newProjectName.trim() || "Untitled project";
-    createProject(name);
-    setNewProjectName("");
-    setShowCreate(false);
+    const project = await createProject(name);
+    if (project) {
+      setNewProjectName("");
+      setShowCreate(false);
+    }
   }, [newProjectName, createProject]);
 
   const handleArchive = useCallback(
