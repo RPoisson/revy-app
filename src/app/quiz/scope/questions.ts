@@ -29,6 +29,11 @@ export function bathroomDrainKey(roomId: string): string {
   return `bathroom_drain_${roomId}`;
 }
 
+/** Answer key for per-room ceiling height overrides. */
+export function ceilingHeightKey(roomId: string): string {
+  return `ceiling_height_${roomId}`;
+}
+
 /** Answer key for each bathroom room's custom names. answers[bathroomNamesKey(roomId)] = string[] (one per instance). */
 export function bathroomNamesKey(roomId: string): string {
   return `bathroom_names_${roomId}`;
@@ -85,6 +90,16 @@ export const DRAIN_POSITION_OPTIONS = [
   { id: "left" as const, label: "Left drain" },
   { id: "right" as const, label: "Right drain" },
   { id: "unsure" as const, label: "Not sure" },
+] as const;
+
+/** Ceiling height options. */
+export const CEILING_HEIGHT_OPTIONS = [
+  { id: "8" as const, label: "8'" },
+  { id: "9" as const, label: "9'" },
+  { id: "10" as const, label: "10'" },
+  { id: "11" as const, label: "11'" },
+  { id: "12" as const, label: "12'" },
+  { id: "custom" as const, label: "Other / varies" },
 ] as const;
 
 /** All room option IDs that support a quantity (multiple instances). When multiple are added, each must be named. */
@@ -301,6 +316,18 @@ export const SCOPE_QUESTIONS: Question[] = [
     required: false,
     showIf: (answers) => hasAnyRoomSelectedForNaming(answers as Record<string, string[]>),
     options: [], // Rendered as custom text inputs in scope page
+  },
+
+  {
+    id: "ceiling_height",
+    title: "What are the ceiling heights?",
+    subtitle: "Set a default for all rooms, or customize per room if heights vary.",
+    type: "single-image",
+    allowMultiple: false,
+    layout: "stack",
+    required: true,
+    showIf: (answers) => hasAnyRoomSelectedForNaming(answers as Record<string, string[]>),
+    options: [], // Rendered as custom UI: default height + optional per-room overrides
   },
 
   {

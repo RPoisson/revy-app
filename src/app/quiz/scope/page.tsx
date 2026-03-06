@@ -20,6 +20,8 @@ import {
   VANITY_TYPE_OPTIONS,
   VANITY_SIZE_OPTIONS,
   DRAIN_POSITION_OPTIONS,
+  CEILING_HEIGHT_OPTIONS,
+  ceilingHeightKey,
 } from "@/app/quiz/scope/questions";
 import type { QuizAnswers } from "@/app/quiz/lib/answersStore";
 import Link from "next/link";
@@ -338,6 +340,130 @@ function BathroomDrainInputs({
   );
 }
 
+function CeilingHeightInputs({
+  answers,
+  onAnswersChange,
+  readOnly,
+}: {
+  answers: QuizAnswers;
+  onAnswersChange: (updater: (prev: QuizAnswers) => QuizAnswers) => void;
+  readOnly: boolean;
+}) {
+  const selectedRooms = answers["rooms"] ?? [];
+  const defaultHeight = (answers["ceiling_height_default"] ?? [])[0] ?? "";
+  const perRoom = (answers["ceiling_height_per_room"] ?? [])[0] === "yes";
+
+  function PillRow({
+    selected,
+    onSelect,
+  }: {
+    selected: string;
+    onSelect: (id: string) => void;
+  }) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {CEILING_HEIGHT_OPTIONS.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onSelect(opt.id)}
+            disabled={readOnly}
+            className={`rounded-full border px-3 py-1.5 text-sm transition ${
+              selected === opt.id
+                ? "border-black bg-black text-white"
+                : "border-black/20 bg-white text-black hover:bg-black/5"
+            } disabled:opacity-70`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Default height for all rooms */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-black/90">Default ceiling height</p>
+        <PillRow
+          selected={defaultHeight}
+          onSelect={(id) =>
+            onAnswersChange((prev) => ({ ...prev, ceiling_height_default: [id] }))
+          }
+        />
+      </div>
+
+      {/* Toggle for per-room customization */}
+      {defaultHeight && (
+        <div className="space-y-1">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={perRoom}
+              onChange={(e) =>
+                onAnswersChange((prev) => ({
+                  ...prev,
+                  ceiling_height_per_room: [e.target.checked ? "yes" : "no"],
+                }))
+              }
+              disabled={readOnly}
+              className="rounded border-black/30 text-black focus:ring-black/20"
+            />
+            <span className="text-sm text-black/70">
+              Some rooms have different ceiling heights
+            </span>
+          </label>
+        </div>
+      )}
+
+      {/* Per-room overrides */}
+      {perRoom && defaultHeight && (
+        <div className="space-y-4">
+          <p className="text-xs text-black/50">
+            Only update rooms that differ from {CEILING_HEIGHT_OPTIONS.find((o) => o.id === defaultHeight)?.label ?? defaultHeight}. Others will use the default.
+          </p>
+          {selectedRooms.map((roomId) => {
+            const count = getRoomCount(answers, roomId);
+            const raw = answers[ceilingHeightKey(roomId)] ?? [];
+            const heights: string[] = [...raw];
+            while (heights.length < count) heights.push("");
+            const names = answers[roomNamesKey(roomId)] ?? [];
+            const baseLabel = ROOM_OPTION_LABELS[roomId] ?? roomId;
+
+            return (
+              <div key={roomId} className="space-y-3">
+                {Array.from({ length: count }, (_, i) => {
+                  const instanceLabel = count === 1 ? baseLabel : `${baseLabel} (${i + 1})`;
+                  const displayLabel = (names[i] && String(names[i]).trim()) || instanceLabel;
+                  const selected = heights[i] || "";
+
+                  return (
+                    <div key={`${roomId}-${i}`} className="rounded-lg border border-black/10 bg-white/50 p-4 space-y-2">
+                      <p className="text-sm font-medium text-black/90">{displayLabel}</p>
+                      <PillRow
+                        selected={selected || defaultHeight}
+                        onSelect={(id) => {
+                          const next = [...heights];
+                          next[i] = id === defaultHeight ? "" : id;
+                          onAnswersChange((prev) => ({
+                            ...prev,
+                            [ceilingHeightKey(roomId)]: next,
+                          }));
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RoomNamesInputs({
   answers,
   onAnswersChange,
@@ -514,6 +640,12 @@ export default function ScopePage() {
       return true;
     }
 
+    // ✅ Ceiling height: require a default height selection
+    if (question.id === "ceiling_height") {
+      const defaultH = (answers["ceiling_height_default"] ?? [])[0];
+      return !!defaultH;
+    }
+
     // ✅ Bathroom vanity: require type + size per bathroom instance (all bathrooms incl. powder)
     if (question.id === "bathroom_vanity") {
       const rooms = (answers["rooms"] ?? []).filter((id) =>
@@ -583,8 +715,11 @@ export default function ScopePage() {
               next = rest as QuizAnswers;
             }
           }
-          const { [roomNamesKey(optionId)]: ___, ...restNames } = next as Record<string, string[]>;
-          next = restNames as QuizAnswers;
+          // Clean up room names and ceiling height for this room
+          for (const key of [roomNamesKey(optionId), ceilingHeightKey(optionId)]) {
+            const { [key]: _, ...rest } = next as Record<string, string[]>;
+            next = rest as QuizAnswers;
+          }
           return next;
         }
 
@@ -707,6 +842,12 @@ export default function ScopePage() {
             />
           ) : question.id === "bathroom_drain" ? (
             <BathroomDrainInputs
+              answers={answers}
+              onAnswersChange={setAnswers}
+              readOnly={false}
+            />
+          ) : question.id === "ceiling_height" ? (
+            <CeilingHeightInputs
               answers={answers}
               onAnswersChange={setAnswers}
               readOnly={false}
